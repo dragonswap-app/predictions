@@ -1,0 +1,30 @@
+{
+  "Address": {
+    "Admin": {
+      "mainnet": "0xb23FEBA15e23688b366fCbFea441a3320855674b",
+      "testnet": "0xb23FEBA15e23688b366fCbFea441a3320855674b"
+    },
+    "Operator": {
+      "mainnet": "0x19eA1a8ad4A16158ccd7313ADEDb3af223cCb466",
+      "testnet": "0x19eA1a8ad4A16158ccd7313ADEDb3af223cCb466"
+    }
+  },
+  "Block": {
+    "Interval": {
+      "mainnet": 300,
+      "testnet": 300
+    },
+    "Buffer": {
+      "mainnet": 60,
+      "testnet": 60
+    }
+  },
+  "Treasury": {
+    "mainnet": 700,
+    "testnet": 700
+  },
+  "BetAmount": {
+    "mainnet": 0.001,
+    "testnet": 0.001
+  }
+}
