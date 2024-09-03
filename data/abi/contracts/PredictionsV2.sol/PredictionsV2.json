@@ -1,54 +1,93 @@
 [
   {
+    "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
-        "name": "_oracleAddress",
+        "name": "target",
         "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_adminAddress",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_operatorAddress",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_intervalSeconds",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_bufferSeconds",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_minBetAmount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_oracleUpdateAllowance",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "_priceFeedId",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_treasuryFee",
-        "type": "uint256"
       }
     ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
+    "name": "AddressEmptyCode",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "AddressInsufficientBalance",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "EnforcedPause",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ExpectedPause",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "FailedInnerCall",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidInitialization",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NotInitializing",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnableInvalidOwner",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "OwnableUnauthorizedAccount",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ReentrancyGuardReentrantCall",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      }
+    ],
+    "name": "SafeERC20FailedOperation",
+    "type": "error"
   },
   {
     "anonymous": false,
@@ -142,6 +181,19 @@
       }
     ],
     "name": "EndRound",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint64",
+        "name": "version",
+        "type": "uint64"
+      }
+    ],
+    "name": "Initialized",
     "type": "event"
   },
   {
@@ -667,6 +719,64 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_owner",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_oracleAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_adminAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_operatorAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_intervalSeconds",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_bufferSeconds",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_minBetAmount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_oracleUpdateAllowance",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_priceFeedId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_treasuryFee",
+        "type": "uint256"
+      }
+    ],
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {

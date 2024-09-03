@@ -28,26 +28,26 @@ const config: HardhatUserConfig = {
     mainnet: seiMainnet,
   },
   solidity: {
-    version: '0.8.4',
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 99999,
-      },
-    },
+    version: '0.8.20',
+        settings: {
+          evmVersion: 'paris',
+          optimizer: {
+            enabled: true,
+            runs: 99999,
+          },
+        },
   },
   etherscan: {
     apiKey: {
-      snowtrace: 'snowtrace', // apiKey is not required, just set a placeholder
+      sei_atlantic_1: '53104e04-ae07-46a8-b3d5-77b8cb31d777',
     },
     customChains: [
       {
-        network: 'snowtrace',
-        chainId: 43113,
+        network: 'sei_atlantic_1',
+        chainId: 1328,
         urls: {
-          apiURL:
-            'https://api.routescan.io/v2/network/testnet/evm/43113/etherscan',
-          browserURL: 'https://avalanche.testnet.routescan.io',
+          apiURL: 'https://seitrace.com/atlantic-2/api',
+          browserURL: 'https://seitrace.com',
         },
       },
     ],

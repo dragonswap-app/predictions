@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.20;
 pragma abicoder v2;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {Pausable} from "@openzeppelin/contracts/security/Pausable.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IPyth} from "@pythnetwork/pyth-sdk-solidity/IPyth.sol";
@@ -13,7 +13,7 @@ import {PythStructs} from "@pythnetwork/pyth-sdk-solidity/PythStructs.sol";
 /**
  * @title PredictionsV2.sol
  */
-contract PredictionsV2 is Ownable, Pausable, ReentrancyGuard {
+contract PredictionsV2 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
     using SafeERC20 for IERC20;
 
     IPyth public pythOracle;
@@ -116,16 +116,24 @@ contract PredictionsV2 is Ownable, Pausable, ReentrancyGuard {
         _;
     }
 
+    constructor() {
+        _disableInitializers();
+    }
+
     /**
      * @notice Constructor
+     * @param _oracleAddress: oracle address
      * @param _adminAddress: admin address
      * @param _operatorAddress: operator address
      * @param _intervalSeconds: number of time within an interval
      * @param _bufferSeconds: buffer of time for resolution of price
      * @param _minBetAmount: minimum bet amounts (in wei)
+     * @param _oracleUpdateAllowance: oracle update allowance
+     * @param _priceFeedId: price feed id
      * @param _treasuryFee: treasury fee (1000 = 10%)
      */
-    constructor(
+    function initialize(
+        address _owner,
         address _oracleAddress,
         address _adminAddress,
         address _operatorAddress,
@@ -135,8 +143,11 @@ contract PredictionsV2 is Ownable, Pausable, ReentrancyGuard {
         uint256 _oracleUpdateAllowance,
         bytes32 _priceFeedId,
         uint256 _treasuryFee
-    ) {
+    ) external initializer {
         require(_treasuryFee <= MAX_TREASURY_FEE, "Treasury fee too high");
+        __Ownable_init(_owner);
+        __Pausable_init();
+        __ReentrancyGuard_init();
 
         pythOracle = IPyth(_oracleAddress);
         adminAddress = _adminAddress;
