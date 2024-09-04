@@ -101,7 +101,7 @@
       {
         "indexed": true,
         "internalType": "uint256",
-        "name": "epoch",
+        "name": "round",
         "type": "uint256"
       },
       {
@@ -126,7 +126,7 @@
       {
         "indexed": true,
         "internalType": "uint256",
-        "name": "epoch",
+        "name": "round",
         "type": "uint256"
       },
       {
@@ -151,7 +151,7 @@
       {
         "indexed": true,
         "internalType": "uint256",
-        "name": "epoch",
+        "name": "round",
         "type": "uint256"
       },
       {
@@ -170,14 +170,14 @@
       {
         "indexed": true,
         "internalType": "uint256",
-        "name": "epoch",
+        "name": "round",
         "type": "uint256"
       },
       {
         "indexed": false,
-        "internalType": "int256",
-        "name": "price",
-        "type": "int256"
+        "internalType": "enum SyntheticPoolNative.Outcome",
+        "name": "outcome",
+        "type": "uint8"
       }
     ],
     "name": "EndRound",
@@ -200,25 +200,6 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "epoch",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "int256",
-        "name": "price",
-        "type": "int256"
-      }
-    ],
-    "name": "LockRound",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
         "indexed": false,
         "internalType": "address",
         "name": "admin",
@@ -232,28 +213,9 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "bufferSeconds",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "intervalSeconds",
-        "type": "uint256"
-      }
-    ],
-    "name": "NewBufferAndIntervalSeconds",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
         "indexed": true,
         "internalType": "uint256",
-        "name": "epoch",
+        "name": "round",
         "type": "uint256"
       },
       {
@@ -283,41 +245,9 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
-        "internalType": "address",
-        "name": "oracle",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "bytes32",
-        "name": "priceFeedId",
-        "type": "bytes32"
-      }
-    ],
-    "name": "NewOracleAndPriceFeedId",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "oracleUpdateAllowance",
-        "type": "uint256"
-      }
-    ],
-    "name": "NewOracleUpdateAllowance",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
         "indexed": true,
         "internalType": "uint256",
-        "name": "epoch",
+        "name": "round",
         "type": "uint256"
       },
       {
@@ -355,7 +285,7 @@
       {
         "indexed": true,
         "internalType": "uint256",
-        "name": "epoch",
+        "name": "round",
         "type": "uint256"
       }
     ],
@@ -381,7 +311,7 @@
       {
         "indexed": true,
         "internalType": "uint256",
-        "name": "epoch",
+        "name": "round",
         "type": "uint256"
       },
       {
@@ -412,7 +342,7 @@
       {
         "indexed": true,
         "internalType": "uint256",
-        "name": "epoch",
+        "name": "round",
         "type": "uint256"
       }
     ],
@@ -457,7 +387,7 @@
       {
         "indexed": true,
         "internalType": "uint256",
-        "name": "epoch",
+        "name": "round",
         "type": "uint256"
       }
     ],
@@ -507,7 +437,12 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "epoch",
+        "name": "roundId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_amount",
         "type": "uint256"
       }
     ],
@@ -520,7 +455,12 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "epoch",
+        "name": "roundId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_amount",
         "type": "uint256"
       }
     ],
@@ -530,24 +470,11 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "bufferSeconds",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
-        "internalType": "uint256[]",
-        "name": "epochs",
-        "type": "uint256[]"
+        "internalType": "uint256",
+        "name": "roundId",
+        "type": "uint256"
       }
     ],
     "name": "claim",
@@ -566,7 +493,7 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "epoch",
+        "name": "roundId",
         "type": "uint256"
       },
       {
@@ -587,8 +514,26 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_roundToEnd",
+        "type": "uint256"
+      },
+      {
+        "internalType": "enum SyntheticPoolNative.Outcome",
+        "name": "_outcome",
+        "type": "uint8"
+      }
+    ],
+    "name": "closeRound",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [],
-    "name": "currentEpoch",
+    "name": "currentRound",
     "outputs": [
       {
         "internalType": "uint256",
@@ -597,53 +542,6 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "executeRound",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "genesisLockOnce",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "genesisLockRound",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "genesisStartOnce",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "genesisStartRound",
-    "outputs": [],
-    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -674,7 +572,7 @@
       {
         "components": [
           {
-            "internalType": "enum PredictionsV2.Position",
+            "internalType": "enum SyntheticPoolNative.Position",
             "name": "position",
             "type": "uint8"
           },
@@ -689,7 +587,7 @@
             "type": "bool"
           }
         ],
-        "internalType": "struct PredictionsV2.BetInfo[]",
+        "internalType": "struct SyntheticPoolNative.BetInfo[]",
         "name": "",
         "type": "tuple[]"
       },
@@ -729,8 +627,8 @@
         "type": "address"
       },
       {
-        "internalType": "address",
-        "name": "_oracleAddress",
+        "internalType": "contract IERC20",
+        "name": "_token",
         "type": "address"
       },
       {
@@ -745,51 +643,23 @@
       },
       {
         "internalType": "uint256",
-        "name": "_intervalSeconds",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_bufferSeconds",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
         "name": "_minBetAmount",
         "type": "uint256"
       },
       {
         "internalType": "uint256",
-        "name": "_oracleUpdateAllowance",
+        "name": "_treasuryFee",
         "type": "uint256"
       },
       {
-        "internalType": "bytes32",
-        "name": "_priceFeedId",
-        "type": "bytes32"
-      },
-      {
         "internalType": "uint256",
-        "name": "_treasuryFee",
+        "name": "_round",
         "type": "uint256"
       }
     ],
     "name": "initialize",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "intervalSeconds",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -808,7 +678,7 @@
     "name": "ledger",
     "outputs": [
       {
-        "internalType": "enum PredictionsV2.Position",
+        "internalType": "enum SyntheticPoolNative.Position",
         "name": "position",
         "type": "uint8"
       },
@@ -854,19 +724,6 @@
   },
   {
     "inputs": [],
-    "name": "oracleUpdateAllowance",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "owner",
     "outputs": [
       {
@@ -899,32 +756,6 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "priceFeedId",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "pythOracle",
-    "outputs": [
-      {
-        "internalType": "contract IPyth",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "address",
@@ -943,30 +774,6 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "epoch",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-      }
-    ],
-    "name": "refundable",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [],
     "name": "renounceOwnership",
     "outputs": [],
@@ -977,7 +784,7 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "epoch",
+        "name": "roundId",
         "type": "uint256"
       }
     ],
@@ -1014,7 +821,7 @@
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "epoch",
+        "name": "roundId",
         "type": "uint256"
       },
       {
@@ -1026,21 +833,6 @@
         "internalType": "uint256",
         "name": "lockTimestamp",
         "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "closeTimestamp",
-        "type": "uint256"
-      },
-      {
-        "internalType": "int256",
-        "name": "lockPrice",
-        "type": "int256"
-      },
-      {
-        "internalType": "int256",
-        "name": "closePrice",
-        "type": "int256"
       },
       {
         "internalType": "uint256",
@@ -1069,8 +861,13 @@
       },
       {
         "internalType": "bool",
-        "name": "oracleCalled",
+        "name": "roundClosed",
         "type": "bool"
+      },
+      {
+        "internalType": "enum SyntheticPoolNative.Outcome",
+        "name": "outcome",
+        "type": "uint8"
       }
     ],
     "stateMutability": "view",
@@ -1085,24 +882,6 @@
       }
     ],
     "name": "setAdmin",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_bufferSeconds",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_intervalSeconds",
-        "type": "uint256"
-      }
-    ],
-    "name": "setBufferAndIntervalSeconds",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -1136,30 +915,12 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "_oracle",
-        "type": "address"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "_priceFeedId",
-        "type": "bytes32"
-      }
-    ],
-    "name": "setOracleAndPriceFeedId",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "uint256",
-        "name": "_oracleUpdateAllowance",
+        "name": "_round",
         "type": "uint256"
       }
     ],
-    "name": "setOracleUpdateAllowance",
+    "name": "setRound",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -1175,6 +936,37 @@
     "name": "setTreasuryFee",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_lockTimestamp",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_roundId",
+        "type": "uint256"
+      }
+    ],
+    "name": "startNewRound",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "token",
+    "outputs": [
+      {
+        "internalType": "contract IERC20",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {

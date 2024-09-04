@@ -11,10 +11,12 @@ import {IPyth} from "@pythnetwork/pyth-sdk-solidity/IPyth.sol";
 import {PythStructs} from "@pythnetwork/pyth-sdk-solidity/PythStructs.sol";
 
 /**
- * @title PredictionsV2.sol
+ * @title MarketMindsV3.sol
  */
-contract PredictionsV2 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
+contract MarketMindsV3 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
     using SafeERC20 for IERC20;
+
+    IERC20 public token; // Prediction token
 
     IPyth public pythOracle;
     bytes32 public priceFeedId;
@@ -122,18 +124,17 @@ contract PredictionsV2 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGua
 
     /**
      * @notice Initialize the contract
-     * @param _oracleAddress: oracle address
+     * @param _token: prediction token
      * @param _adminAddress: admin address
      * @param _operatorAddress: operator address
      * @param _intervalSeconds: number of time within an interval
      * @param _bufferSeconds: buffer of time for resolution of price
      * @param _minBetAmount: minimum bet amounts (in wei)
-     * @param _oracleUpdateAllowance: oracle update allowance
-     * @param _priceFeedId: price feed id
      * @param _treasuryFee: treasury fee (1000 = 10%)
      */
     function initialize(
         address _owner,
+        IERC20 _token,
         address _oracleAddress,
         address _adminAddress,
         address _operatorAddress,
@@ -149,6 +150,7 @@ contract PredictionsV2 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGua
         __Pausable_init();
         __ReentrancyGuard_init();
 
+        token = _token;
         pythOracle = IPyth(_oracleAddress);
         adminAddress = _adminAddress;
         operatorAddress = _operatorAddress;
@@ -164,14 +166,15 @@ contract PredictionsV2 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGua
      * @notice Bet bear position
      * @param epoch: epoch
      */
-    function betBear(uint256 epoch) external payable whenNotPaused nonReentrant notContract {
+    function betBear(uint256 epoch, uint256 _amount) external whenNotPaused nonReentrant notContract {
         require(epoch == currentEpoch, "Bet is too early/late");
         require(_bettable(epoch), "Round not bettable");
-        require(msg.value >= minBetAmount, "Bet amount must be greater than minBetAmount");
+        require(_amount >= minBetAmount, "Bet amount must be greater than minBetAmount");
         require(ledger[epoch][msg.sender].amount == 0, "Can only bet once per round");
 
+        token.safeTransferFrom(msg.sender, address(this), _amount);
         // Update round data
-        uint256 amount = msg.value;
+        uint256 amount = _amount;
         Round storage round = rounds[epoch];
         round.totalAmount = round.totalAmount + amount;
         round.bearAmount = round.bearAmount + amount;
@@ -189,14 +192,15 @@ contract PredictionsV2 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGua
      * @notice Bet bull position
      * @param epoch: epoch
      */
-    function betBull(uint256 epoch) external payable whenNotPaused nonReentrant notContract {
+    function betBull(uint256 epoch, uint256 _amount) external whenNotPaused nonReentrant notContract {
         require(epoch == currentEpoch, "Bet is too early/late");
         require(_bettable(epoch), "Round not bettable");
-        require(msg.value >= minBetAmount, "Bet amount must be greater than minBetAmount");
+        require(_amount >= minBetAmount, "Bet amount must be greater than minBetAmount");
         require(ledger[epoch][msg.sender].amount == 0, "Can only bet once per round");
 
+        token.safeTransferFrom(msg.sender, address(this), _amount);
         // Update round data
-        uint256 amount = msg.value;
+        uint256 amount = _amount;
         Round storage round = rounds[epoch];
         round.totalAmount = round.totalAmount + amount;
         round.bullAmount = round.bullAmount + amount;
@@ -242,7 +246,7 @@ contract PredictionsV2 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGua
         }
 
         if (reward > 0) {
-            _safeTransferSEI(address(msg.sender), reward);
+            token.safeTransfer(msg.sender, reward);
         }
     }
 
@@ -314,14 +318,14 @@ contract PredictionsV2 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGua
     function claimTreasury() external nonReentrant onlyAdmin {
         uint256 currentTreasuryAmount = treasuryAmount;
         treasuryAmount = 0;
-        _safeTransferSEI(adminAddress, currentTreasuryAmount);
-
+        token.safeTransfer(adminAddress, currentTreasuryAmount);
         emit TreasuryClaim(currentTreasuryAmount);
     }
 
     /**
      * @notice called by the admin to unpause, returns to normal state
      * Reset genesis state. Once paused, the rounds would need to be kickstarted by genesis
+     * @dev Callable by admin or operator
      */
     function unpause() external whenPaused onlyAdminOrOperator {
         genesisStartOnce = false;
@@ -410,6 +414,7 @@ contract PredictionsV2 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGua
      * @dev Callable by owner
      */
     function recoverToken(address _token, uint256 _amount) external onlyOwner {
+        require(_token != address(token), "Cannot be prediction token address");
         IERC20(_token).safeTransfer(address(msg.sender), _amount);
 
         emit TokenRecovery(_token, _amount);
@@ -588,6 +593,22 @@ contract PredictionsV2 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGua
     }
 
     /**
+     * @notice Start round
+     * Previous round n-2 must end
+     * @param epoch: epoch
+     */
+    function _startRound(uint256 epoch) internal {
+        Round storage round = rounds[epoch];
+        round.startTimestamp = block.timestamp;
+        round.lockTimestamp = block.timestamp + intervalSeconds;
+        round.closeTimestamp = block.timestamp + (2 * intervalSeconds);
+        round.epoch = epoch;
+        round.totalAmount = 0;
+
+        emit StartRound(epoch);
+    }
+
+    /**
      * @notice Get round stats
      * @param epoch: epoch
      */
@@ -603,32 +624,6 @@ contract PredictionsV2 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGua
             bearMultiplier = (poolSize * 100) / round.bearAmount;
         }
         return (poolSize, bullMultiplier, bearMultiplier);
-    }
-
-    /**
-     * @notice Transfer BNB in a safe way
-     * @param to: address to transfer BNB to
-     * @param value: BNB amount to transfer (in wei)
-     */
-    function _safeTransferSEI(address to, uint256 value) internal {
-        (bool success, ) = to.call{value: value}("");
-        require(success, "TransferHelper: BNB_TRANSFER_FAILED");
-    }
-
-    /**
-     * @notice Start round
-     * Previous round n-2 must end
-     * @param epoch: epoch
-     */
-    function _startRound(uint256 epoch) internal {
-        Round storage round = rounds[epoch];
-        round.startTimestamp = block.timestamp;
-        round.lockTimestamp = block.timestamp + intervalSeconds;
-        round.closeTimestamp = block.timestamp + (2 * intervalSeconds);
-        round.epoch = epoch;
-        round.totalAmount = 0;
-
-        emit StartRound(epoch);
     }
 
     /**

@@ -8,7 +8,8 @@ contract PredictionsFactory is Ownable {
         NONE,
         V2,
         V3,
-        V4
+        V4,
+        V5
     }
 
     // Type of contracts deployed by factory
@@ -21,6 +22,8 @@ contract PredictionsFactory is Ownable {
     address public implPredictionV3;
     // PredictionV4 contract implementation
     address public implPredictionV4;
+    // PredictionV5 contract implementation
+    address public implPredictionV5;
 
     // Events
     event Deployed(
@@ -75,7 +78,7 @@ contract PredictionsFactory is Ownable {
         emit ImplementationSet(implementation, Impl.V3);
     }
 
-        /**
+    /**
      * @dev Function to set new PredictionV4 implementation
      */
     function setImplementationPredictionV4(address implementation) external onlyOwner {
@@ -87,6 +90,20 @@ contract PredictionsFactory is Ownable {
         implPredictionV4 = implementation;
         // Emit relevant event
         emit ImplementationSet(implementation, Impl.V4);
+    }
+
+    /**
+     * @dev Function to set new PredictionV5 implementation
+     */
+    function setImplementationPredictionV5(address implementation) external onlyOwner {
+        // Require that implementation is different from current one
+        if (implPredictionV5 == implementation) {
+            revert ImplementationAlreadySet();
+        }
+        // Set new implementation
+        implPredictionV5 = implementation;
+        // Emit relevant event
+        emit ImplementationSet(implementation, Impl.V5);
     }
 
     /**
@@ -104,7 +121,7 @@ contract PredictionsFactory is Ownable {
         uint256 treasuryFee
     ) external onlyOwner {
         bytes memory data = abi.encodeWithSignature(
-            "initialize(address,address,address,uint256,uint256,uint256,uint256,bytes32,uint256)",
+            "initialize(address,address,address,address,uint256,uint256,uint256,uint256,bytes32,uint256)",
             owner(),
             oracleAddress,
             adminAddress,
@@ -117,7 +134,20 @@ contract PredictionsFactory is Ownable {
             treasuryFee
         );
         address instance = _deploy(data, Impl.V2);
-        emit Deployed(instance, Impl.V2, address(0), oracleAddress, adminAddress, operatorAddress, intervalSeconds, bufferSeconds, minBetAmount, oracleUpdateAllowance, priceFeedId, treasuryFee);
+        emit Deployed(
+            instance,
+            Impl.V2,
+            address(0),
+            oracleAddress,
+            adminAddress,
+            operatorAddress,
+            intervalSeconds,
+            bufferSeconds,
+            minBetAmount,
+            oracleUpdateAllowance,
+            priceFeedId,
+            treasuryFee
+        );
     }
 
     /**
@@ -136,7 +166,7 @@ contract PredictionsFactory is Ownable {
         uint256 treasuryFee
     ) external onlyOwner {
         bytes memory data = abi.encodeWithSignature(
-            "initialize(address,address,address,address,uint256,uint256,uint256,uint256,bytes32,uint256)",
+            "initialize(address,address,address,address,address,uint256,uint256,uint256,uint256,bytes32,uint256)",
             owner(),
             token,
             oracleAddress,
@@ -150,10 +180,23 @@ contract PredictionsFactory is Ownable {
             treasuryFee
         );
         address instance = _deploy(data, Impl.V3);
-        emit Deployed(instance, Impl.V3, token, oracleAddress, adminAddress, operatorAddress, intervalSeconds, bufferSeconds, minBetAmount, oracleUpdateAllowance, priceFeedId, treasuryFee);
+        emit Deployed(
+            instance,
+            Impl.V3,
+            token,
+            oracleAddress,
+            adminAddress,
+            operatorAddress,
+            intervalSeconds,
+            bufferSeconds,
+            minBetAmount,
+            oracleUpdateAllowance,
+            priceFeedId,
+            treasuryFee
+        );
     }
 
-        /**
+    /**
      * @dev Deployment wrapper for boosted staker implementation
      */
     function deployPredictionV4(
@@ -164,7 +207,7 @@ contract PredictionsFactory is Ownable {
         uint256 round
     ) external onlyOwner {
         bytes memory data = abi.encodeWithSignature(
-            "initialize(address,address,uint256,uint256,uint256)",
+            "initialize(address,address,address,uint256,uint256,uint256)",
             owner(),
             adminAddress,
             operatorAddress,
@@ -173,14 +216,70 @@ contract PredictionsFactory is Ownable {
             round
         );
         address instance = _deploy(data, Impl.V4);
-        emit Deployed(instance, Impl.V4, address(0), address(0), adminAddress, operatorAddress, 0, 0, minBetAmount, 0, 0, treasuryFee);
+        emit Deployed(
+            instance,
+            Impl.V4,
+            address(0),
+            address(0),
+            adminAddress,
+            operatorAddress,
+            0,
+            0,
+            minBetAmount,
+            0,
+            0,
+            treasuryFee
+        );
+    }
+
+    function deployPredictionV5(
+        address token,
+        address adminAddress,
+        address operatorAddress,
+        uint256 minBetAmount,
+        uint256 treasuryFee,
+        uint256 round
+    ) external onlyOwner {
+        bytes memory data = abi.encodeWithSignature(
+            "initialize(address,address,address,address,uint256,uint256,uint256)",
+            owner(),
+            token,
+            adminAddress,
+            operatorAddress,
+            minBetAmount,
+            treasuryFee,
+            round
+        );
+        address instance = _deploy(data, Impl.V5);
+        emit Deployed(
+            instance,
+            Impl.V4,
+            token,
+            address(0),
+            adminAddress,
+            operatorAddress,
+            0,
+            0,
+            minBetAmount,
+            0,
+            0,
+            treasuryFee
+        );
     }
 
     /**
      * @dev Function to make a new deployment and initialize clone instance
      */
     function _deploy(bytes memory data, Impl implType) private returns (address instance) {
-        address impl = implType == Impl.V2 ? implPredictionV2 : implType == Impl.V3 ? implPredictionV3 : implType == Impl.V4 ? implPredictionV4 : address(0);
+        address impl = implType == Impl.V2
+            ? implPredictionV2
+            : implType == Impl.V3
+                ? implPredictionV3
+                : implType == Impl.V4
+                    ? implPredictionV4
+                    : implType == Impl.V5
+                        ? implPredictionV5
+                        : address(0);
 
         // Require that implementation is set
         if (impl == address(0)) {

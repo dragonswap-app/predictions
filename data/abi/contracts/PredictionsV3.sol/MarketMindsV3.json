@@ -509,11 +509,16 @@
         "internalType": "uint256",
         "name": "epoch",
         "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_amount",
+        "type": "uint256"
       }
     ],
     "name": "betBear",
     "outputs": [],
-    "stateMutability": "payable",
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -522,11 +527,16 @@
         "internalType": "uint256",
         "name": "epoch",
         "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_amount",
+        "type": "uint256"
       }
     ],
     "name": "betBull",
     "outputs": [],
-    "stateMutability": "payable",
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -674,7 +684,7 @@
       {
         "components": [
           {
-            "internalType": "enum PredictionsV2.Position",
+            "internalType": "enum MarketMindsV3.Position",
             "name": "position",
             "type": "uint8"
           },
@@ -689,7 +699,7 @@
             "type": "bool"
           }
         ],
-        "internalType": "struct PredictionsV2.BetInfo[]",
+        "internalType": "struct MarketMindsV3.BetInfo[]",
         "name": "",
         "type": "tuple[]"
       },
@@ -726,6 +736,11 @@
       {
         "internalType": "address",
         "name": "_owner",
+        "type": "address"
+      },
+      {
+        "internalType": "contract IERC20",
+        "name": "_token",
         "type": "address"
       },
       {
@@ -808,7 +823,7 @@
     "name": "ledger",
     "outputs": [
       {
-        "internalType": "enum PredictionsV2.Position",
+        "internalType": "enum MarketMindsV3.Position",
         "name": "position",
         "type": "uint8"
       },
@@ -1175,6 +1190,19 @@
     "name": "setTreasuryFee",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "token",
+    "outputs": [
+      {
+        "internalType": "contract IERC20",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
