@@ -1,7 +1,11 @@
 import { parseEther } from "ethers/lib/utils";
 import { ethers, network, run } from "hardhat";
 import config from "../config";
-import { saveJson, getJson, jsons } from "./utils";
+import { saveJson, getJson, jsons, sleep } from "./utils";
+
+const wait = async () => {
+  await sleep(3000);
+};
 
 const main = async () => {
   // Get network data from Hardhat config (see hardhat.config.ts).
@@ -64,6 +68,8 @@ const main = async () => {
       );
       console.log("PredictionsV2 implementation set on factory");
     }
+
+    await wait();
 
     const predictionsV2Tx = await predictionsFactory.deployPredictionV2(
       oracleAddress,

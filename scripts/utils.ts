@@ -3,6 +3,8 @@ import * as path from "path";
 
 const relativePath = "../deployments/";
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
 const jsons: Record<string, string> = {
   addresses: "addresses.json",
   config: "config.json",
@@ -34,4 +36,4 @@ function saveJson(
   );
 }
 
-export { jsons, getJson, saveJson };
+export { jsons, getJson, saveJson, sleep };
