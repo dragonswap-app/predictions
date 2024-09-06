@@ -8,7 +8,7 @@ import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/ut
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract SyntheticPoolNative is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
+contract PredictionV4 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
     using SafeERC20 for IERC20;
 
     address public adminAddress; // address of the admin
@@ -39,7 +39,7 @@ contract SyntheticPoolNative is OwnableUpgradeable, PausableUpgradeable, Reentra
     struct Round {
         uint256 roundId;
         uint256 startTimestamp;
-        uint256 lockTimestamp;
+        uint256 closeTimestamp;
         uint256 totalAmount;
         uint256 bullAmount;
         uint256 bearAmount;
@@ -99,10 +99,6 @@ contract SyntheticPoolNative is OwnableUpgradeable, PausableUpgradeable, Reentra
         _;
     }
 
-    function setRound(uint256 _round) public onlyAdmin {
-        currentRound = _round;
-    }
-
     constructor() {
         _disableInitializers();
     }
@@ -119,8 +115,7 @@ contract SyntheticPoolNative is OwnableUpgradeable, PausableUpgradeable, Reentra
         address _adminAddress,
         address _operatorAddress,
         uint256 _minBetAmount,
-        uint256 _treasuryFee,
-        uint256 _round
+        uint256 _treasuryFee
     ) external initializer {
         require(_treasuryFee <= MAX_TREASURY_FEE, "Treasury fee too high");
         __Ownable_init(_owner);
@@ -131,7 +126,6 @@ contract SyntheticPoolNative is OwnableUpgradeable, PausableUpgradeable, Reentra
         operatorAddress = _operatorAddress;
         minBetAmount = _minBetAmount;
         treasuryFee = _treasuryFee;
-        setRound(_round);
     }
 
     function betBear(uint256 roundId) external payable whenNotPaused nonReentrant notContract {
@@ -206,17 +200,18 @@ contract SyntheticPoolNative is OwnableUpgradeable, PausableUpgradeable, Reentra
      * @notice Starts round
      * @dev Callable by operator
      */
-    function startNewRound(uint256 _lockTimestamp, uint256 _roundId) public whenNotPaused onlyOperator {
-        require(_lockTimestamp > block.timestamp, "lockTimestamp must be greater than current timestamp");
+    function startNewRound(uint256 _startTimestamp) public whenNotPaused onlyOperator {
+        require(_startTimestamp > block.timestamp, "startTimestamp must be greater than current timestamp");
 
         currentRound = currentRound + 1;
-        Round storage round = rounds[currentRound];
-        round.startTimestamp = block.timestamp;
-        round.lockTimestamp = _lockTimestamp;
+        
+        uint256 roundId = currentRound;
+        Round storage round = rounds[roundId];
+        round.startTimestamp = _startTimestamp;
         round.totalAmount = 0;
-        round.roundId = _roundId;
+        round.roundId = roundId;
 
-        emit StartRound(currentRound);
+        emit StartRound(roundId);
     }
 
     /**
@@ -226,7 +221,7 @@ contract SyntheticPoolNative is OwnableUpgradeable, PausableUpgradeable, Reentra
      * @dev Callable by operator
      */
     function closeRound(uint256 _roundToEnd, Outcome _outcome) public whenNotPaused onlyOperator {
-        require(_roundToEnd <= currentRound, "Round does not exist");
+        require(_roundToEnd == currentRound, "Round does not exist");
         require(!rounds[_roundToEnd].roundClosed, "Round has already been closed");
 
         _safeEndRound(_roundToEnd, _outcome);
@@ -416,6 +411,7 @@ contract SyntheticPoolNative is OwnableUpgradeable, PausableUpgradeable, Reentra
      */
     function _safeEndRound(uint256 roundId, Outcome _outcome) internal {
         Round storage round = rounds[roundId];
+        round.closeTimestamp = block.timestamp;
         round.outcome = _outcome;
         round.roundClosed = true;
 
@@ -428,7 +424,7 @@ contract SyntheticPoolNative is OwnableUpgradeable, PausableUpgradeable, Reentra
      */
     function _bettable(uint256 roundId) internal view returns (bool) {
         return
-            rounds[roundId].startTimestamp != 0 && rounds[roundId].lockTimestamp != 0 && !rounds[roundId].roundClosed;
+            rounds[roundId].startTimestamp < block.timestamp  && !rounds[roundId].roundClosed;
     }
 
     /**

@@ -175,7 +175,7 @@
       },
       {
         "indexed": false,
-        "internalType": "enum SyntheticPoolNative.Outcome",
+        "internalType": "enum PredictionV4.Outcome",
         "name": "outcome",
         "type": "uint8"
       }
@@ -511,7 +511,7 @@
         "type": "uint256"
       },
       {
-        "internalType": "enum SyntheticPoolNative.Outcome",
+        "internalType": "enum PredictionV4.Outcome",
         "name": "_outcome",
         "type": "uint8"
       }
@@ -562,7 +562,7 @@
       {
         "components": [
           {
-            "internalType": "enum SyntheticPoolNative.Position",
+            "internalType": "enum PredictionV4.Position",
             "name": "position",
             "type": "uint8"
           },
@@ -577,7 +577,7 @@
             "type": "bool"
           }
         ],
-        "internalType": "struct SyntheticPoolNative.BetInfo[]",
+        "internalType": "struct PredictionV4.BetInfo[]",
         "name": "",
         "type": "tuple[]"
       },
@@ -635,11 +635,6 @@
         "internalType": "uint256",
         "name": "_treasuryFee",
         "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_round",
-        "type": "uint256"
       }
     ],
     "name": "initialize",
@@ -663,7 +658,7 @@
     "name": "ledger",
     "outputs": [
       {
-        "internalType": "enum SyntheticPoolNative.Position",
+        "internalType": "enum PredictionV4.Position",
         "name": "position",
         "type": "uint8"
       },
@@ -816,7 +811,7 @@
       },
       {
         "internalType": "uint256",
-        "name": "lockTimestamp",
+        "name": "closeTimestamp",
         "type": "uint256"
       },
       {
@@ -850,7 +845,7 @@
         "type": "bool"
       },
       {
-        "internalType": "enum SyntheticPoolNative.Outcome",
+        "internalType": "enum PredictionV4.Outcome",
         "name": "outcome",
         "type": "uint8"
       }
@@ -901,19 +896,6 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "_round",
-        "type": "uint256"
-      }
-    ],
-    "name": "setRound",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
         "name": "_treasuryFee",
         "type": "uint256"
       }
@@ -927,12 +909,7 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "_lockTimestamp",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_roundId",
+        "name": "_startTimestamp",
         "type": "uint256"
       }
     ],
