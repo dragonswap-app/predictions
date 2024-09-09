@@ -210,7 +210,7 @@ contract PredictionV5 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuar
         require(_startTimestamp > block.timestamp, "startTimestamp must be greater than current timestamp");
 
         currentRound = currentRound + 1;
-        
+
         uint256 roundId = currentRound;
         Round storage round = rounds[roundId];
         round.startTimestamp = _startTimestamp;
@@ -429,8 +429,7 @@ contract PredictionV5 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuar
      * @param roundId: round id
      */
     function _bettable(uint256 roundId) internal view returns (bool) {
-        return
-            rounds[roundId].startTimestamp < block.timestamp && !rounds[roundId].roundClosed;
+        return rounds[roundId].startTimestamp < block.timestamp && !rounds[roundId].roundClosed;
     }
 
     /**
