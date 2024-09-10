@@ -1,4 +1,4 @@
-import { contract, ethers } from "hardhat";
+import { ethers } from "hardhat";
 import { assert, expect } from "chai";
 import { parseEther } from "ethers/lib/utils";
 import { BigNumber } from "ethers";
