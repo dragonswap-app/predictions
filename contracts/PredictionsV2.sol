@@ -606,13 +606,13 @@ contract PredictionsV2 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGua
     }
 
     /**
-     * @notice Transfer BNB in a safe way
-     * @param to: address to transfer BNB to
-     * @param value: BNB amount to transfer (in wei)
+     * @notice Transfer SEI in a safe way
+     * @param to: address to transfer SEI to
+     * @param value: SEI amount to transfer (in wei)
      */
     function _safeTransferSEI(address to, uint256 value) internal {
         (bool success, ) = to.call{value: value}("");
-        require(success, "TransferHelper: BNB_TRANSFER_FAILED");
+        require(success, "TransferHelper: SEI_TRANSFER_FAILED");
     }
 
     /**
