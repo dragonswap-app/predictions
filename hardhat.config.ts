@@ -2,7 +2,6 @@ import type { HardhatUserConfig, NetworkUserConfig } from "hardhat/types";
 require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-web3");
 require("@openzeppelin/hardhat-upgrades");
-require("@nomicfoundation/hardhat-chai-matchers");
 require("solidity-coverage");
 require("hardhat-contract-sizer");
 import "dotenv/config";
