@@ -49,29 +49,29 @@ const main = async () => {
 
     if ((await predictionsFactory.implPredictionV2()) === zeroAddress) {
       const predictionV2ImplFactory =
-        await ethers.getContractFactory("PredictionsV2");
-      const predictionsV2 = await predictionV2ImplFactory.deploy();
-      await predictionsV2.deployed();
+        await ethers.getContractFactory("PredictionV2");
+      const predictionV2 = await predictionV2ImplFactory.deploy();
+      await predictionV2.deployed();
       console.log(
-        `PredictionV2 implementation address: ${predictionsV2.address}`,
+        `PredictionV2 implementation address: ${predictionV2.address}`,
       );
 
       saveJson(
         jsons.addresses,
         network.name,
-        "PredictionsV2Implementation",
-        predictionsV2.address,
+        "PredictionV2Implementation",
+        predictionV2.address,
       );
 
       await predictionsFactory.setImplementationPredictionV2(
-        predictionsV2.address,
+        predictionV2.address,
       );
-      console.log("PredictionsV2 implementation set on factory");
+      console.log("PredictionV2 implementation set on factory");
     }
 
     await wait();
 
-    const predictionsV2Tx = await predictionsFactory.deployPredictionV2(
+    const predictionV2Tx = await predictionsFactory.deployPredictionV2(
       oracleAddress,
       adminAddress,
       operatorAddress,
@@ -83,20 +83,20 @@ const main = async () => {
       treasury,
     );
 
-    const predictionsV2TxReceipt = await predictionsV2Tx.wait();
+    const predictionV2TxReceipt = await predictionV2Tx.wait();
 
-    const predictionsV2 = await ethers.getContractAt(
-      "PredictionsV2",
-      predictionsV2TxReceipt.logs[0].address,
+    const predictionV2 = await ethers.getContractAt(
+      "PredictionV2",
+      predictionV2TxReceipt.logs[0].address,
     );
 
-    console.log("PredictionsV2 address: ", predictionsV2.address);
+    console.log("PredictionsV2 address: ", predictionV2.address);
 
     saveJson(
       jsons.addresses,
       network.name,
       "PredictionsV2",
-      predictionsV2.address,
+      predictionV2.address,
     );
   } else {
     console.log(`Deploying to ${networkName} network is not supported...`);

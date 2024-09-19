@@ -45,24 +45,24 @@ const main = async () => {
 
     if ((await predictionsFactory.implPredictionV5()) === zeroAddress) {
       const predictionV5ImplFactory =
-        await ethers.getContractFactory("PredictionsV5");
-      const predictionsV5 = await predictionV5ImplFactory.deploy();
-      await predictionsV5.deployed();
+        await ethers.getContractFactory("PredictionV5");
+      const predictionV5 = await predictionV5ImplFactory.deploy();
+      await predictionV5.deployed();
       console.log(
-        `PredictionV5 implementation address: ${predictionsV5.address}`,
+        `PredictionV5 implementation address: ${predictionV5.address}`,
       );
 
       saveJson(
         jsons.addresses,
         network.name,
-        "PredictionsV5Implementation",
-        predictionsV5.address,
+        "PredictionV5Implementation",
+        predictionV5.address,
       );
 
       await predictionsFactory.setImplementationPredictionV5(
-        predictionsV5.address,
+        predictionV5.address,
       );
-      console.log("PredictionsV5 implementation set on factory");
+      console.log("PredictionV5 implementation set on factory");
     }
 
     await wait();
@@ -78,16 +78,16 @@ const main = async () => {
     const predictionsV5TxReceipt = await predictionsV5Tx.wait();
 
     const predictionsV5 = await ethers.getContractAt(
-      "PredictionsV5",
+      "PredictionV5",
       predictionsV5TxReceipt.logs[0].address,
     );
 
-    console.log("PredictionsV5 address: ", predictionsV5.address);
+    console.log("PredictionV5 address: ", predictionsV5.address);
 
     saveJson(
       jsons.addresses,
       network.name,
-      "PredictionsV5",
+      "PredictionV5",
       predictionsV5.address,
     );
   } else {

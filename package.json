@@ -7,6 +7,8 @@
   "private": true,
   "scripts": {
     "compile": "npx hardhat compile",
+    "deployFactory:testnet": "npx hardhat run --network testnet scripts/deployFactory.ts",
+    "deployFactory:mainnet": "npx hardhat run --network mainnet scripts/deployFactory.ts",
     "deployPredictionV2:testnet": "npx hardhat run --network testnet scripts/deployPredictionV2.ts",
     "deployPredictionV2:mainnet": "npx hardhat run --network mainnet scripts/deployPredictionV2.ts",
     "deployPredictionV3:testnet": "npx hardhat run --network testnet scripts/deployPredictionV3.ts",

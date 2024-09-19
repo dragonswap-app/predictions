@@ -203,17 +203,15 @@ contract PredictionsFactory is Ownable {
         address adminAddress,
         address operatorAddress,
         uint256 minBetAmount,
-        uint256 treasuryFee,
-        uint256 round
+        uint256 treasuryFee
     ) external onlyOwner {
         bytes memory data = abi.encodeWithSignature(
-            "initialize(address,address,address,uint256,uint256,uint256)",
+            "initialize(address,address,address,uint256,uint256)",
             owner(),
             adminAddress,
             operatorAddress,
             minBetAmount,
-            treasuryFee,
-            round
+            treasuryFee
         );
         address instance = _deploy(data, Impl.V4);
         emit Deployed(
@@ -237,23 +235,21 @@ contract PredictionsFactory is Ownable {
         address adminAddress,
         address operatorAddress,
         uint256 minBetAmount,
-        uint256 treasuryFee,
-        uint256 round
+        uint256 treasuryFee
     ) external onlyOwner {
         bytes memory data = abi.encodeWithSignature(
-            "initialize(address,address,address,address,uint256,uint256,uint256)",
+            "initialize(address,address,address,address,uint256,uint256)",
             owner(),
             token,
             adminAddress,
             operatorAddress,
             minBetAmount,
-            treasuryFee,
-            round
+            treasuryFee
         );
         address instance = _deploy(data, Impl.V5);
         emit Deployed(
             instance,
-            Impl.V4,
+            Impl.V5,
             token,
             address(0),
             adminAddress,

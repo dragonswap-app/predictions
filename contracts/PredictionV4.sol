@@ -8,10 +8,8 @@ import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/ut
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract PredictionV5 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
+contract PredictionV4 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
     using SafeERC20 for IERC20;
-
-    IERC20 public token; // Prediction token
 
     address public adminAddress; // address of the admin
     address public operatorAddress; // address of the operator
@@ -22,7 +20,7 @@ contract PredictionV5 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuar
 
     uint256 public currentRound; // current round number
 
-    uint256 public MAX_TREASURY_FEE = 1000; // 10%
+    uint256 public constant MAX_TREASURY_FEE = 1000; // 10%
 
     mapping(uint256 => mapping(address => BetInfo)) public ledger;
     mapping(uint256 => Round) public rounds;
@@ -114,7 +112,6 @@ contract PredictionV5 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuar
      */
     function initialize(
         address _owner,
-        IERC20 _token,
         address _adminAddress,
         address _operatorAddress,
         uint256 _minBetAmount,
@@ -125,22 +122,20 @@ contract PredictionV5 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuar
         __Pausable_init();
         __ReentrancyGuard_init();
 
-        token = _token;
         adminAddress = _adminAddress;
         operatorAddress = _operatorAddress;
         minBetAmount = _minBetAmount;
         treasuryFee = _treasuryFee;
     }
 
-    function betBear(uint256 roundId, uint256 _amount) external payable whenNotPaused nonReentrant notContract {
+    function betBear(uint256 roundId) external payable whenNotPaused nonReentrant notContract {
         require(roundId == currentRound, "Bet is too early/late");
         require(_bettable(roundId), "Round not bettable");
-        require(_amount >= minBetAmount, "Bet amount must be greater than minBetAmount");
+        require(msg.value >= minBetAmount, "Bet amount must be greater than minBetAmount");
         require(ledger[roundId][msg.sender].amount == 0, "Can only bet once per round");
 
-        token.safeTransferFrom(msg.sender, address(this), _amount);
         // Update round data
-        uint256 amount = _amount;
+        uint256 amount = msg.value;
         Round storage round = rounds[roundId];
         round.totalAmount = round.totalAmount + amount;
         round.bearAmount = round.bearAmount + amount;
@@ -154,15 +149,14 @@ contract PredictionV5 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuar
         emit BetBear(msg.sender, roundId, amount);
     }
 
-    function betBull(uint256 roundId, uint256 _amount) external payable whenNotPaused nonReentrant notContract {
+    function betBull(uint256 roundId) external payable whenNotPaused nonReentrant notContract {
         require(roundId == currentRound, "Bet is too early/late");
         require(_bettable(roundId), "Round not bettable");
-        require(_amount >= minBetAmount, "Bet amount must be greater than minBetAmount");
+        require(msg.value >= minBetAmount, "Bet amount must be greater than minBetAmount");
         require(ledger[roundId][msg.sender].amount == 0, "Can only bet once per round");
 
-        token.safeTransferFrom(msg.sender, address(this), _amount);
         // Update round data
-        uint256 amount = _amount;
+        uint256 amount = msg.value;
         Round storage round = rounds[roundId];
         round.totalAmount = round.totalAmount + amount;
         round.bullAmount = round.bullAmount + amount;
@@ -198,7 +192,7 @@ contract PredictionV5 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuar
         emit Claim(msg.sender, roundId, addedReward);
 
         if (reward > 0) {
-            token.safeTransfer(msg.sender, reward);
+            _safeTransferNative(address(msg.sender), reward);
         }
     }
 
@@ -253,7 +247,7 @@ contract PredictionV5 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuar
     function claimTreasury() external nonReentrant onlyAdmin {
         uint256 currentTreasuryAmount = treasuryAmount;
         treasuryAmount = 0;
-        token.safeTransfer(adminAddress, currentTreasuryAmount);
+        _safeTransferNative(adminAddress, currentTreasuryAmount);
 
         emit TreasuryClaim(currentTreasuryAmount);
     }
@@ -273,7 +267,7 @@ contract PredictionV5 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuar
      * @notice Set minBetAmount
      * @dev Callable by admin
      */
-    function setMinBetAmount(uint256 _minBetAmount) external onlyAdmin {
+    function setMinBetAmount(uint256 _minBetAmount) external whenPaused onlyAdmin {
         require(_minBetAmount != 0, "Must be superior to 0");
         minBetAmount = _minBetAmount;
 
@@ -295,7 +289,7 @@ contract PredictionV5 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuar
      * @notice Set treasury fee
      * @dev Callable by admin
      */
-    function setTreasuryFee(uint256 _treasuryFee) external onlyAdmin {
+    function setTreasuryFee(uint256 _treasuryFee) external whenPaused onlyAdmin {
         require(_treasuryFee <= MAX_TREASURY_FEE, "Treasury fee too high");
         treasuryFee = _treasuryFee;
 
@@ -318,7 +312,7 @@ contract PredictionV5 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuar
      * @notice Set admin address
      * @dev Callable by owner
      */
-    function setAdmin(address _adminAddress) external onlyAdmin {
+    function setAdmin(address _adminAddress) external onlyOwner {
         require(_adminAddress != address(0), "Cannot be zero address");
         adminAddress = _adminAddress;
 
@@ -429,11 +423,14 @@ contract PredictionV5 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuar
      * @param roundId: round id
      */
     function _bettable(uint256 roundId) internal view returns (bool) {
-        return rounds[roundId].startTimestamp < block.timestamp && !rounds[roundId].roundClosed;
+        return
+            rounds[roundId].startTimestamp != 0 &&
+            rounds[roundId].startTimestamp < block.timestamp &&
+            !rounds[roundId].roundClosed;
     }
 
     /**
-     * @notice Returns round data
+     * @notice Get round stats
      * @param roundId: round id
      */
     function roundStats(
@@ -448,6 +445,16 @@ contract PredictionV5 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuar
             bearMultiplier = (poolSize * 100) / round.bearAmount;
         }
         return (poolSize, bullMultiplier, bearMultiplier);
+    }
+
+    /**
+     * @notice Transfer Native token in a safe way
+     * @param to: address to transfer native token to
+     * @param value: Native token amount to transfer (in wei)
+     */
+    function _safeTransferNative(address to, uint256 value) internal {
+        (bool success, ) = to.call{value: value}("");
+        require(success, "TransferHelper: NATIVE_TOKEN_TRANSFER_FAILED");
     }
 
     /**

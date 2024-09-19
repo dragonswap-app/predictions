@@ -50,24 +50,24 @@ const main = async () => {
 
     if ((await predictionsFactory.implPredictionV3()) === zeroAddress) {
       const predictionV3ImplFactory =
-        await ethers.getContractFactory("PredictionsV3");
-      const predictionsV3 = await predictionV3ImplFactory.deploy();
-      await predictionsV3.deployed();
+        await ethers.getContractFactory("PredictionV3");
+      const predictionV3 = await predictionV3ImplFactory.deploy();
+      await predictionV3.deployed();
       console.log(
-        `PredictionV3 implementation address: ${predictionsV3.address}`,
+        `PredictionV3 implementation address: ${predictionV3.address}`,
       );
 
       saveJson(
         jsons.addresses,
         network.name,
-        "PredictionsV3Implementation",
-        predictionsV3.address,
+        "PredictionV3Implementation",
+        predictionV3.address,
       );
 
       await predictionsFactory.setImplementationPredictionV3(
-        predictionsV3.address,
+        predictionV3.address,
       );
-      console.log("PredictionsV3 implementation set on factory");
+      console.log("PredictionV3 implementation set on factory");
     }
 
     await wait();
@@ -88,16 +88,16 @@ const main = async () => {
     const predictionsV3TxReceipt = await predictionsV3Tx.wait();
 
     const predictionsV3 = await ethers.getContractAt(
-      "PredictionsV3",
+      "PredictionV3",
       predictionsV3TxReceipt.logs[0].address,
     );
 
-    console.log("PredictionsV3 address: ", predictionsV3.address);
+    console.log("PredictionV3 address: ", predictionsV3.address);
 
     saveJson(
       jsons.addresses,
       network.name,
-      "PredictionsV3",
+      "PredictionV3",
       predictionsV3.address,
     );
   } else {

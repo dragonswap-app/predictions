@@ -19,7 +19,7 @@ export default {
   },
   Block: {
     Interval: {
-      mainnet: 600,
+      mainnet: 300,
       testnet: 300,
     },
     Buffer: {
@@ -28,16 +28,16 @@ export default {
     },
   },
   Treasury: {
-    mainnet: 700, // 7%
-    testnet: 700, // 7%
+    mainnet: 300, // 3%
+    testnet: 300, // 3%
   },
   MinBetAmount: {
-    mainnet: 0.001,
-    testnet: 0.001,
+    mainnet: 15,
+    testnet: 15,
   },
   OracleUpdateAllowance: {
-    mainnet: 400,
-    testnet: 400,
+    mainnet: 200,
+    testnet: 200,
   },
   PriceFeedId: {
     mainnet:
