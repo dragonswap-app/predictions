@@ -42,21 +42,13 @@ Centralized predictions:
 
 ## Table of Contents
 1. [PredictionV2](#prediction-v2)
-   - Documentation
-   - Deployment
-   - Operation
+
 2. [PredictionV3](#predictionv3)
-   - Documentation
-   - Deployment
-   - Operation
+
 3. [PredictionV4](#predictionv4)
-   - Documentation
-   - Deployment
-   - Operation
+
 4. [PredictionV5](#predictionv5)
-   - Documentation
-   - Deployment
-   - Operation
+
 ---
 
 ## PredictionV2
