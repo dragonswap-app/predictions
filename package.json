@@ -7,6 +7,8 @@
   "private": true,
   "scripts": {
     "compile": "npx hardhat compile",
+    "claimFees:mainnet": "npx hardhat run --network mainnet scripts/feeManagement.ts",
+    "claimFees:testnet": "npx hardhat run --network testnet scripts/feeManagement.ts",
     "deployFactory:testnet": "npx hardhat run --network testnet scripts/deployFactory.ts",
     "deployFactory:mainnet": "npx hardhat run --network mainnet scripts/deployFactory.ts",
     "deployPredictionV2:testnet": "npx hardhat run --network testnet scripts/deployPredictionV2.ts",
