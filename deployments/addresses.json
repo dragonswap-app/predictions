@@ -1,6 +1,8 @@
 {
-  "testnet": {
-  },
+  "testnet": {},
   "mainnet": {
+    "PredictionsFactory": "0xB34B27E0FB109A7fA3fAA0596d4D115C423c785b",
+    "PredictionV2Implementation": "0xca9851E8c209906d612aa41D683A6Db7fd2d5266",
+    "PredictionsV2": "0x5B31c97EB5FD1C13BC01a0f6Fd5D0bbF0170dA9B"
   }
 }
