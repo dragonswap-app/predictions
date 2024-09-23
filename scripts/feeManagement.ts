@@ -24,7 +24,8 @@ const main = async () => {
       "0x5B31c97EB5FD1C13BC01a0f6Fd5D0bbF0170dA9B", // PredictionV2 address
     );
 
-    console.log(await predictionV2.treasuryAmount());
+    const treasuryAmt = await predictionV2.treasuryAmount()
+    console.log(ethers.utils.formatEther(treasuryAmt.toString()), "SEI");
 
     // // Claim fees
     // const claimTreasuryFeesTx = await predictionV2.claimTreasury();
