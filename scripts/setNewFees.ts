@@ -17,7 +17,7 @@ const main = async () => {
       // Add more prediction addresses here
     ];
 
-    const newTreasuryFee = 1000; // Fees calculation (e.g. 200 = 2%, 150 = 1.50%), 1000 = 10% being max settable fee value
+    const newTreasuryFee = 400; // Fees calculation (e.g. 200 = 2%, 150 = 1.50%), 1000 = 10% being max settable fee value
 
     for (const address of predictionV2Addresses) {
       const predictionV2 = await ethers.getContractAt("PredictionV2", address);
