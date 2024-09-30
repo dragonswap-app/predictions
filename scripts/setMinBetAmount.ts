@@ -23,6 +23,11 @@ const main = async () => {
     for (const address of predictionV2Addresses) {
       const predictionV2 = await ethers.getContractAt("PredictionV2", address);
 
+      // Pausing contract
+      const pauseTx = await predictionV2.pause();
+      await pauseTx.wait();
+      console.log(`Paused contract at ${address}`);
+
       console.log(
         `Setting new minimum bet amount for contract at ${address}...`,
       );
@@ -32,6 +37,12 @@ const main = async () => {
       console.log(
         `New minimum bet amount set to ${ethers.utils.formatEther(newMinBetAmount)} SEI for contract at ${address}`,
       );
+
+      // Unpausing contract
+      const unpauseTx = await predictionV2.unpause();
+      await unpauseTx.wait();
+      console.log(`Unpaused contract at ${address}`);
+
       console.log("---");
     }
   } else {
