@@ -13,7 +13,7 @@ const main = async () => {
     console.log("Compiled contracts...");
 
     const predictionV2Addresses = [
-      "0x37591deA45d29EcDeac205e80D8dCbf8D87D9C6A",
+      "0x5B31c97EB5FD1C13BC01a0f6Fd5D0bbF0170dA9B",
       // Add more prediction addresses here
     ];
 
