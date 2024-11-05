@@ -6,16 +6,17 @@ require("solidity-coverage");
 require("hardhat-contract-sizer");
 import "dotenv/config";
 
+
 const seiTestnet: NetworkUserConfig = {
   url: "https://evm-rpc.arctic-1.seinetwork.io",
   chainId: 713715,
-  accounts: [process.env.KEY_TESTNET!],
+  accounts: process.env.KEY_TESTNET ? [process.env.KEY_TESTNET] : [],
 };
 
 const seiMainnet: NetworkUserConfig = {
   url: "https://evm-rpc.sei-apis.com",
   chainId: 1329,
-  accounts: [process.env.KEY_MAINNET!],
+  accounts: process.env.KEY_MAINNET ? [process.env.KEY_MAINNET] : [],
 };
 
 const config: HardhatUserConfig = {
