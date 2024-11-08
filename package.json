@@ -58,6 +58,7 @@
     "typescript": "^4.2.3"
   },
   "dependencies": {
-    "@pythnetwork/pyth-sdk-solidity": "^4.0.0"
+    "@pythnetwork/pyth-sdk-solidity": "^4.0.0",
+    "@dragonswap/sei-native-oracle-adapter": "git+https://github.com/dragonswap-app/sei-native-oracle-adapter.git"
   }
 }
