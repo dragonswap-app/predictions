@@ -4,6 +4,7 @@ require("@nomiclabs/hardhat-web3");
 require("@openzeppelin/hardhat-upgrades");
 require("solidity-coverage");
 require("hardhat-contract-sizer");
+import "@nomicfoundation/hardhat-foundry";
 import "dotenv/config";
 
 
@@ -27,7 +28,7 @@ const config: HardhatUserConfig = {
     mainnet: seiMainnet,
   },
   solidity: {
-    version: "0.8.20",
+    version: "0.8.28",
     settings: {
       viaIR: true,
       evmVersion: "paris",
