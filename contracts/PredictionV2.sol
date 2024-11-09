@@ -6,19 +6,17 @@ import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Pau
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-
+import {IPredictionV2} from "./interfaces/IPredictionV2.sol";
 import {SeiNativeOracleAdapter} from "@dragonswap/sei-native-oracle-adapter/src/SeiNativeOracleAdapter.sol";
 
 /**
  * @title PredictionV2.sol
  */
-contract PredictionV2 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
+contract PredictionV2 is IPredictionV2, OwnableUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
     using SafeERC20 for IERC20;
 
     bool public genesisLockOnce;
     bool public genesisStartOnce;
-
-    string public tokenDenom;
 
     address public adminAddress; // address of the admin
     address public operatorAddress; // address of the operator
@@ -32,89 +30,13 @@ contract PredictionV2 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuar
 
     uint256 public currentEpoch; // current epoch for prediction round
 
-    uint256 public constant MAX_TREASURY_FEE = 1_000; // 10%
+    string public tokenDenom;
 
-    mapping(uint256 => mapping(address => BetInfo)) public ledger;
     mapping(uint256 => Round) public rounds;
     mapping(address => uint256[]) public userRounds;
+    mapping(uint256 => mapping(address => BetInfo)) public ledger;
 
-    enum Position {
-        Bull,
-        Bear
-    }
-
-    struct Round {
-        uint256 epoch;
-        uint256 startTimestamp;
-        uint256 lockTimestamp;
-        uint256 closeTimestamp;
-        uint256 lockPrice;
-        uint256 closePrice;
-        uint256 totalAmount;
-        uint256 bullAmount;
-        uint256 bearAmount;
-        uint256 rewardBaseCalAmount;
-        uint256 rewardAmount;
-        bool oracleCalled;
-    }
-
-    struct BetInfo {
-        Position position;
-        uint256 amount;
-        bool claimed; // default false
-    }
-
-    event BetBear(address indexed sender, uint256 indexed epoch, uint256 amount);
-    event BetBull(address indexed sender, uint256 indexed epoch, uint256 amount);
-    event Claim(address indexed sender, uint256 indexed epoch, uint256 amount);
-    event EndRound(uint256 indexed epoch, uint256 price);
-    event LockRound(uint256 indexed epoch, uint256 price);
-
-    event NewAdminAddress(address admin);
-    event NewBufferAndIntervalSeconds(uint256 bufferSeconds, uint256 intervalSeconds);
-    event NewMinBetAmount(uint256 indexed epoch, uint256 minBetAmount);
-    event NewTreasuryFee(uint256 indexed epoch, uint256 treasuryFee);
-    event NewOperatorAddress(address operator);
-
-    event Pause(uint256 indexed epoch);
-    event RewardsCalculated(
-        uint256 indexed epoch, uint256 rewardBaseCalAmount, uint256 rewardAmount, uint256 treasuryAmount
-    );
-
-    event StartRound(uint256 indexed epoch);
-    event TokenRecovery(address indexed token, uint256 amount);
-    event TreasuryClaim(uint256 amount);
-    event Unpause(uint256 indexed epoch);
-
-    error OnlyAdmin();
-    error OnlyAdminOrOperator();
-    error OnlyOperator();
-    error OnlyEOA();
-    error UnsupportedToken();
-    error TreasuryFeeTooHigh();
-    error NotClaimable();
-    error NotBettable();
-    error RoundNotLocked();
-    error RoundNotOverYet();
-    error RoundNotStartedYet();
-    error RoundNMinus2MustBeClosed();
-    error RoundNMinus2ClosingTimeNotPassed();
-    error RewardsAlreadyCalculated();
-    error ClosingPeriodEnded();
-    error SeiTransferFailed();
-    error CannotLockYet();
-    error CannotCloseYet();
-    error InvalidAddress();
-    error InvalidMinBetAmount();
-    error GenesisAlreadyLocked();
-    error GenesisAlreadyStarted();
-    error InvalidTimespanRelation();
-    error GenesisNotManaged();
-    error GenesisNotStarted();
-    error NotRefundable();
-    error AlreadyMadeABet();
-    error BetAmountTooLow();
-    error BetUnavailable();
+    uint256 public constant MAX_TREASURY_FEE = 1_000; // 10%
 
     modifier onlyAdmin() {
         _onlyAdmin();
@@ -484,10 +406,30 @@ contract PredictionV2 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuar
     }
 
     /**
+     * @notice Get round stats
+     * @param epoch: epoch
+     */
+    function roundStats(uint256 epoch)
+        public
+        view
+        returns (uint256 poolSize, uint256 bullMultiplier, uint256 bearMultiplier)
+    {
+        Round memory round = rounds[epoch];
+        poolSize = round.totalAmount;
+        if (round.bullAmount > 0) {
+            bullMultiplier = (poolSize * 100) / round.bullAmount;
+        }
+        if (round.bearAmount > 0) {
+            bearMultiplier = (poolSize * 100) / round.bearAmount;
+        }
+        return (poolSize, bullMultiplier, bearMultiplier);
+    }
+
+    /**
      * @notice Calculate rewards for round
      * @param epoch: epoch
      */
-    function _calculateRewards(uint256 epoch) internal {
+    function _calculateRewards(uint256 epoch) private {
         if (rounds[epoch].rewardBaseCalAmount != 0 || rounds[epoch].rewardAmount != 0) {
             revert RewardsAlreadyCalculated();
         }
@@ -528,7 +470,7 @@ contract PredictionV2 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuar
      * @param epoch: epoch
      * @param price: price of the round
      */
-    function _safeEndRound(uint256 epoch, uint256 price) internal {
+    function _safeEndRound(uint256 epoch, uint256 price) private {
         if (rounds[epoch].lockTimestamp == 0) revert RoundNotLocked();
         if (block.timestamp < rounds[epoch].closeTimestamp) revert CannotCloseYet();
         if (block.timestamp > rounds[epoch].closeTimestamp + bufferSeconds) revert ClosingPeriodEnded();
@@ -544,7 +486,7 @@ contract PredictionV2 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuar
      * @param epoch: epoch
      * @param price: price of the round
      */
-    function _safeLockRound(uint256 epoch, uint256 price) internal {
+    function _safeLockRound(uint256 epoch, uint256 price) private {
         if (rounds[epoch].startTimestamp == 0) revert RoundNotStartedYet();
         if (block.timestamp < rounds[epoch].lockTimestamp) revert CannotLockYet();
         if (block.timestamp > rounds[epoch].lockTimestamp + bufferSeconds) revert ClosingPeriodEnded();
@@ -560,7 +502,7 @@ contract PredictionV2 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuar
      * Previous round n-2 must end
      * @param epoch: epoch
      */
-    function _safeStartRound(uint256 epoch) internal {
+    function _safeStartRound(uint256 epoch) private {
         if (!genesisStartOnce) revert GenesisNotStarted();
         if (rounds[epoch - 2].closeTimestamp == 0) revert RoundNMinus2MustBeClosed();
         if (block.timestamp < rounds[epoch - 2].closeTimestamp) revert RoundNMinus2ClosingTimeNotPassed();
@@ -568,31 +510,11 @@ contract PredictionV2 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuar
     }
 
     /**
-     * @notice Get round stats
-     * @param epoch: epoch
-     */
-    function roundStats(uint256 epoch)
-        public
-        view
-        returns (uint256 poolSize, uint256 bullMultiplier, uint256 bearMultiplier)
-    {
-        Round memory round = rounds[epoch];
-        poolSize = round.totalAmount;
-        if (round.bullAmount > 0) {
-            bullMultiplier = (poolSize * 100) / round.bullAmount;
-        }
-        if (round.bearAmount > 0) {
-            bearMultiplier = (poolSize * 100) / round.bearAmount;
-        }
-        return (poolSize, bullMultiplier, bearMultiplier);
-    }
-
-    /**
      * @notice Transfer SEI in a safe way
      * @param to: address to transfer SEI to
      * @param value: SEI amount to transfer (in wei)
      */
-    function _safeTransferSEI(address to, uint256 value) internal {
+    function _safeTransferSEI(address to, uint256 value) private {
         (bool success,) = to.call{value: value}("");
         if (!success) revert SeiTransferFailed();
     }
@@ -602,7 +524,7 @@ contract PredictionV2 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuar
      * Previous round n-2 must end
      * @param epoch: epoch
      */
-    function _startRound(uint256 epoch) internal {
+    function _startRound(uint256 epoch) private {
         Round storage round = rounds[epoch];
         round.startTimestamp = block.timestamp;
         round.lockTimestamp = block.timestamp + intervalSeconds;
@@ -618,7 +540,7 @@ contract PredictionV2 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuar
      * Round must have started and locked
      * Current timestamp must be within startTimestamp and closeTimestamp
      */
-    function _bettable(uint256 epoch) internal view returns (bool) {
+    function _bettable(uint256 epoch) private view returns (bool) {
         return rounds[epoch].startTimestamp != 0 && rounds[epoch].lockTimestamp != 0
             && block.timestamp > rounds[epoch].startTimestamp && block.timestamp < rounds[epoch].lockTimestamp;
     }
