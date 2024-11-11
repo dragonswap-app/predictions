@@ -7,9 +7,9 @@ contract PredictionsFactory is Ownable {
     enum Impl {
         NONE,
         V2,
+        V2Pyth,
         V3,
-        V4,
-        V5
+        V3Pyth
     }
 
     // Type of contracts deployed by factory
@@ -19,11 +19,11 @@ contract PredictionsFactory is Ownable {
     // PredictionV2 contract implementation
     address public implPredictionV2;
     // PredictionV3 contract implementation
+    address public implPredictionV2Pyth;
+    // PredictionV3 contract implementation
     address public implPredictionV3;
-    // PredictionV4 contract implementation
-    address public implPredictionV4;
-    // PredictionV5 contract implementation
-    address public implPredictionV5;
+    // PredictionV3Pyth contract implementation
+    address public implPredictionV3Pyth;
 
     // Events
     event Deployed(
@@ -67,6 +67,20 @@ contract PredictionsFactory is Ownable {
     /**
      * @dev Function to set new PredictionV3 implementation
      */
+    function setImplementationPredictionV2Pyth(address implementation) external onlyOwner {
+        // Require that implementation is different from current one
+        if (implPredictionV2Pyth == implementation) {
+            revert ImplementationAlreadySet();
+        }
+        // Set new implementation
+        implPredictionV2Pyth = implementation;
+        // Emit relevant event
+        emit ImplementationSet(implementation, Impl.V2Pyth);
+    }
+
+    /**
+     * @dev Function to set new PredictionV3 implementation
+     */
     function setImplementationPredictionV3(address implementation) external onlyOwner {
         // Require that implementation is different from current one
         if (implPredictionV3 == implementation) {
@@ -79,31 +93,17 @@ contract PredictionsFactory is Ownable {
     }
 
     /**
-     * @dev Function to set new PredictionV4 implementation
+     * @dev Function to set new PredictionV3Pyth implementation
      */
-    function setImplementationPredictionV4(address implementation) external onlyOwner {
+    function setImplementationPredictionV3Pyth(address implementation) external onlyOwner {
         // Require that implementation is different from current one
-        if (implPredictionV4 == implementation) {
+        if (implPredictionV3Pyth == implementation) {
             revert ImplementationAlreadySet();
         }
         // Set new implementation
-        implPredictionV4 = implementation;
+        implPredictionV3Pyth = implementation;
         // Emit relevant event
-        emit ImplementationSet(implementation, Impl.V4);
-    }
-
-    /**
-     * @dev Function to set new PredictionV5 implementation
-     */
-    function setImplementationPredictionV5(address implementation) external onlyOwner {
-        // Require that implementation is different from current one
-        if (implPredictionV5 == implementation) {
-            revert ImplementationAlreadySet();
-        }
-        // Set new implementation
-        implPredictionV5 = implementation;
-        // Emit relevant event
-        emit ImplementationSet(implementation, Impl.V5);
+        emit ImplementationSet(implementation, Impl.V3Pyth);
     }
 
     /**
@@ -151,9 +151,9 @@ contract PredictionsFactory is Ownable {
     }
 
     /**
-     * @dev Deployment wrapper for PredictionV3 implementation
+     * @dev Deployment wrapper for PredictionV2Pyth implementation
      */
-    function deployPredictionV3(
+    function deployPredictionV2(
         address token,
         address oracleAddress,
         address adminAddress,
@@ -179,10 +179,10 @@ contract PredictionsFactory is Ownable {
             priceFeedId,
             treasuryFee
         );
-        address instance = _deploy(data, Impl.V3);
+        address instance = _deploy(data, Impl.V2Pyth);
         emit Deployed(
             instance,
-            Impl.V3,
+            Impl.V2Pyth,
             token,
             oracleAddress,
             adminAddress,
@@ -199,7 +199,7 @@ contract PredictionsFactory is Ownable {
     /**
      * @dev Deployment wrapper for boosted staker implementation
      */
-    function deployPredictionV4(
+    function deployPredictionV3(
         address adminAddress,
         address operatorAddress,
         uint256 minBetAmount,
@@ -213,10 +213,10 @@ contract PredictionsFactory is Ownable {
             minBetAmount,
             treasuryFee
         );
-        address instance = _deploy(data, Impl.V4);
+        address instance = _deploy(data, Impl.V3);
         emit Deployed(
             instance,
-            Impl.V4,
+            Impl.V3,
             address(0),
             address(0),
             adminAddress,
@@ -230,7 +230,7 @@ contract PredictionsFactory is Ownable {
         );
     }
 
-    function deployPredictionV5(
+    function deployPredictionV3Pyth(
         address token,
         address adminAddress,
         address operatorAddress,
@@ -246,10 +246,10 @@ contract PredictionsFactory is Ownable {
             minBetAmount,
             treasuryFee
         );
-        address instance = _deploy(data, Impl.V5);
+        address instance = _deploy(data, Impl.V3Pyth);
         emit Deployed(
             instance,
-            Impl.V5,
+            Impl.V3Pyth,
             token,
             address(0),
             adminAddress,
@@ -269,12 +269,12 @@ contract PredictionsFactory is Ownable {
     function _deploy(bytes memory data, Impl implType) private returns (address instance) {
         address impl = implType == Impl.V2
             ? implPredictionV2
-            : implType == Impl.V3
-                ? implPredictionV3
-                : implType == Impl.V4
-                    ? implPredictionV4
-                    : implType == Impl.V5
-                        ? implPredictionV5
+            : implType == Impl.V2Pyth
+                ? implPredictionV2Pyth
+                : implType == Impl.V3
+                    ? implPredictionV3
+                    : implType == Impl.V3Pyth
+                        ? implPredictionV3Pyth
                         : address(0);
 
         // Require that implementation is set
