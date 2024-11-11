@@ -74,7 +74,7 @@ contract PredictionV3 is IPrediction, OwnableUpgradeable, PausableUpgradeable, R
      */
     function initialize(
         address _owner,
-        IERC20 _token,
+        address _token,
         address _adminAddress,
         address _operatorAddress,
         uint256 _intervalSeconds,
@@ -88,9 +88,12 @@ contract PredictionV3 is IPrediction, OwnableUpgradeable, PausableUpgradeable, R
         __Pausable_init();
         __ReentrancyGuard_init();
 
-        token = _token;
+        if (_token == address(0)) revert InvalidAddress();
+        token = IERC20(_token);
 
+        if (_adminAddress == address(0)) revert InvalidAddress();
         adminAddress = _adminAddress;
+        if (_operatorAddress == address(0)) revert InvalidAddress();
         operatorAddress = _operatorAddress;
         intervalSeconds = _intervalSeconds;
         bufferSeconds = _bufferSeconds;
@@ -111,6 +114,7 @@ contract PredictionV3 is IPrediction, OwnableUpgradeable, PausableUpgradeable, R
         if (amount < minBetAmount) revert BetAmountTooLow();
         if (ledger[epoch][msg.sender].amount != 0) revert AlreadyMadeABet();
 
+        token.safeTransferFrom(msg.sender, address(this), amount);
         // Update round data
         Round storage round = rounds[epoch];
         round.totalAmount = round.totalAmount + amount;
@@ -134,6 +138,8 @@ contract PredictionV3 is IPrediction, OwnableUpgradeable, PausableUpgradeable, R
         if (!_bettable(epoch)) revert NotBettable();
         if (amount < minBetAmount) revert BetAmountTooLow();
         if (ledger[epoch][msg.sender].amount != 0) revert AlreadyMadeABet();
+
+        token.safeTransferFrom(msg.sender, address(this), amount);
 
         // Update round data
         Round storage round = rounds[epoch];
@@ -326,9 +332,9 @@ contract PredictionV3 is IPrediction, OwnableUpgradeable, PausableUpgradeable, R
      */
     function recoverToken(IERC20 _token, uint256 _amount) external onlyOwner {
         if (_token == token) revert();
-        IERC20(_token).safeTransfer(address(msg.sender), _amount);
+        _token.safeTransfer(address(msg.sender), _amount);
 
-        emit TokenRecovery(_token, _amount);
+        emit TokenRecovery(address(_token), _amount);
     }
 
     /**
@@ -510,16 +516,6 @@ contract PredictionV3 is IPrediction, OwnableUpgradeable, PausableUpgradeable, R
         if (rounds[epoch - 2].closeTimestamp == 0) revert RoundNMinus2MustBeClosed();
         if (block.timestamp < rounds[epoch - 2].closeTimestamp) revert RoundNMinus2ClosingTimeNotPassed();
         _startRound(epoch);
-    }
-
-    /**
-     * @notice Transfer SEI in a safe way
-     * @param to: address to transfer SEI to
-     * @param value: SEI amount to transfer (in wei)
-     */
-    function _safeTransferSEI(address to, uint256 value) private {
-        (bool success,) = to.call{value: value}("");
-        if (!success) revert SeiTransferFailed();
     }
 
     /**

@@ -94,9 +94,12 @@ contract PredictionV2 is IPrediction, OwnableUpgradeable, PausableUpgradeable, R
         __Pausable_init();
         __ReentrancyGuard_init();
 
+        if (_oracleAddress == address(0)) revert InvalidAddress();
         pythOracle = IPyth(_oracleAddress);
 
+        if (_adminAddress == address(0)) revert InvalidAddress();
         adminAddress = _adminAddress;
+        if (_operatorAddress == address(0)) revert InvalidAddress();
         operatorAddress = _operatorAddress;
         intervalSeconds = _intervalSeconds;
         bufferSeconds = _bufferSeconds;
