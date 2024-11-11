@@ -9,7 +9,7 @@ import {IPrediction} from "./interfaces/IPrediction.sol";
 import {SeiNativeOracleAdapter} from "@dragonswap/sei-native-oracle-adapter/src/SeiNativeOracleAdapter.sol";
 
 /**
- * @title PredictionV2.sol
+ * @title PredictionV3.sol
  */
 contract PredictionV3 is IPrediction, OwnableUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
     using SafeERC20 for IERC20;

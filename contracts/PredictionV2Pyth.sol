@@ -10,9 +10,9 @@ import {IPyth} from "@pythnetwork/pyth-sdk-solidity/IPyth.sol";
 import {PythStructs} from "@pythnetwork/pyth-sdk-solidity/PythStructs.sol";
 
 /**
- * @title PredictionV2.sol
+ * @title PredictionV2Pyth.sol
  */
-contract PredictionV2 is IPrediction, OwnableUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
+contract PredictionV2Pyth is IPrediction, OwnableUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
     using SafeERC20 for IERC20;
 
     IPyth public pythOracle;
@@ -315,6 +315,30 @@ contract PredictionV2 is IPrediction, OwnableUpgradeable, PausableUpgradeable, R
         operatorAddress = _operatorAddress;
 
         emit NewOperatorAddress(_operatorAddress);
+    }
+
+    /**
+     * @notice Set Oracle address and Pyth price feed id
+     * @dev Callable by admin
+     */
+    function setOracleAndPriceFeedId(address _oracle, bytes32 _priceFeedId) external whenPaused onlyAdmin {
+        require(_oracle != address(0), "Cannot be zero address");
+        require(_priceFeedId != bytes32(0), "Cannot be zero bytes32");
+
+        pythOracle = IPyth(_oracle);
+        priceFeedId = _priceFeedId;
+
+        emit NewOracleAndPriceFeedId(_oracle, priceFeedId);
+    }
+
+    /**
+     * @notice Set oracle update allowance
+     * @dev Callable by admin
+     */
+    function setOracleUpdateAllowance(uint256 _oracleUpdateAllowance) external whenPaused onlyAdmin {
+        oracleUpdateAllowance = _oracleUpdateAllowance;
+
+        emit NewOracleUpdateAllowance(_oracleUpdateAllowance);
     }
 
     /**
