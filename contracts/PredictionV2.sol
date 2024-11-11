@@ -310,7 +310,7 @@ contract PredictionV2 is IPredictionV2, OwnableUpgradeable, PausableUpgradeable,
      * @dev Callable by admin
      */
     function setTreasuryFee(uint256 _treasuryFee) external whenPaused onlyAdmin {
-        if (_treasuryFee >= MAX_TREASURY_FEE) revert TreasuryFeeTooHigh();
+        if (_treasuryFee > MAX_TREASURY_FEE) revert TreasuryFeeTooHigh();
         treasuryFee = _treasuryFee;
 
         emit NewTreasuryFee(currentEpoch, treasuryFee);
