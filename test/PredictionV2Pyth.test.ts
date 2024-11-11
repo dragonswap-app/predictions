@@ -118,7 +118,7 @@ describe("PredictionsV2", () => {
     await predictionsFactory.deployed();
 
     const predictionV2ImplmentationFactory =
-      await ethers.getContractFactory("PredictionV2");
+      await ethers.getContractFactory("PredictionV2Pyth");
     const predictionsV2Implementation =
       await predictionV2ImplmentationFactory.deploy();
     await predictionsV2Implementation.deployed();
@@ -144,7 +144,7 @@ describe("PredictionsV2", () => {
     const predictionV2TxReceipt = await predictionV2CreationTx.wait();
 
     prediction = await ethers.getContractAt(
-      "PredictionV2",
+      "PredictionV2Pyth",
       predictionV2TxReceipt.logs[0].address,
     );
   });

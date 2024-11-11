@@ -50,6 +50,9 @@ interface IPrediction {
     event TreasuryClaim(uint256 amount);
     event Unpause(uint256 indexed epoch);
 
+    event NewOracleAndPriceFeedId(address oracle, bytes32 priceFeedId);
+    event NewOracleUpdateAllowance(uint256 oracleUpdateAllowance);
+
     error OnlyAdmin();
     error OnlyAdminOrOperator();
     error OnlyOperator();
