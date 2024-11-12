@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {SeiNativeOracleAdapter} from "@dragonswap/sei-native-oracle-adapter/src/SeiNativeOracleAdapter.sol";
 
 contract PredictionsFactory is Ownable {
     enum Impl {
@@ -18,7 +19,7 @@ contract PredictionsFactory is Ownable {
     address[] public deployments;
     // PredictionV2 contract implementation
     address public implPredictionV2;
-    // PredictionV3 contract implementation
+    // PredictionV2Pyth contract implementation
     address public implPredictionV2Pyth;
     // PredictionV3 contract implementation
     address public implPredictionV3;
@@ -27,6 +28,7 @@ contract PredictionsFactory is Ownable {
 
     // Events
     event Deployed(
+        address indexed owner,
         address indexed instance,
         Impl indexed impType,
         address token,
@@ -38,7 +40,8 @@ contract PredictionsFactory is Ownable {
         uint256 minBetAmount,
         uint256 oracleUpdateAllowance,
         bytes32 priceFeedId,
-        uint256 treasuryFee
+        uint256 treasuryFee,
+        string tokenDenom
     );
     event ImplementationSet(address implementation, Impl impType);
 
@@ -110,6 +113,48 @@ contract PredictionsFactory is Ownable {
      * @dev Deployment wrapper for PredictionV2 implementation
      */
     function deployPredictionV2(
+        address adminAddress,
+        address operatorAddress,
+        uint256 intervalSeconds,
+        uint256 bufferSeconds,
+        uint256 minBetAmount,
+        uint256 treasuryFee,
+        string calldata tokenDenom
+    ) external onlyOwner {
+        bytes memory data = abi.encodeWithSignature(
+            "initialize(address,address,address,uint256,uint256,uint256,uint256,string)",
+            msg.sender,
+            adminAddress,
+            operatorAddress,
+            intervalSeconds,
+            bufferSeconds,
+            minBetAmount,
+            treasuryFee,
+            tokenDenom
+        );
+        address instance = _deploy(data, Impl.V2);
+        emit Deployed(
+            msg.sender,
+            instance,
+            Impl.V2,
+            address(0),
+            SeiNativeOracleAdapter.ORACLE_PRECOMPILE_ADDRESS,
+            adminAddress,
+            operatorAddress,
+            intervalSeconds,
+            bufferSeconds,
+            minBetAmount,
+            0,
+            bytes32(0),
+            treasuryFee,
+            tokenDenom
+        );
+    }
+
+    /**
+     * @dev Deployment wrapper for PredictionV2Pyth implementation
+     */
+    function deployPredictionV2Pyth(
         address oracleAddress,
         address adminAddress,
         address operatorAddress,
@@ -122,7 +167,7 @@ contract PredictionsFactory is Ownable {
     ) external onlyOwner {
         bytes memory data = abi.encodeWithSignature(
             "initialize(address,address,address,address,uint256,uint256,uint256,uint256,bytes32,uint256)",
-            owner(),
+            msg.sender,
             oracleAddress,
             adminAddress,
             operatorAddress,
@@ -133,10 +178,11 @@ contract PredictionsFactory is Ownable {
             priceFeedId,
             treasuryFee
         );
-        address instance = _deploy(data, Impl.V2);
+        address instance = _deploy(data, Impl.V2Pyth);
         emit Deployed(
+            msg.sender,
             instance,
-            Impl.V2,
+            Impl.V2Pyth,
             address(0),
             oracleAddress,
             adminAddress,
@@ -146,14 +192,56 @@ contract PredictionsFactory is Ownable {
             minBetAmount,
             oracleUpdateAllowance,
             priceFeedId,
-            treasuryFee
+            treasuryFee,
+            string("")
         );
     }
 
     /**
-     * @dev Deployment wrapper for PredictionV2Pyth implementation
+     * @dev Deployment wrapper for boosted staker implementation
      */
-    function deployPredictionV2(
+    function deployPredictionV3(
+        address token,
+        address adminAddress,
+        address operatorAddress,
+        uint256 intervalSeconds,
+        uint256 bufferSeconds,
+        uint256 minBetAmount,
+        uint256 treasuryFee,
+        string calldata tokenDenom
+    ) external onlyOwner {
+        bytes memory data = abi.encodeWithSignature(
+            "initialize(address,address,address,address,uint256,uint256,uint256,uint256,string)",
+            msg.sender,
+            token,
+            adminAddress,
+            operatorAddress,
+            intervalSeconds,
+            bufferSeconds,
+            minBetAmount,
+            treasuryFee,
+            tokenDenom
+        );
+        address instance = _deploy(data, Impl.V3);
+        emit Deployed(
+            msg.sender,
+            instance,
+            Impl.V3,
+            SeiNativeOracleAdapter.ORACLE_PRECOMPILE_ADDRESS,
+            address(0),
+            adminAddress,
+            operatorAddress,
+            intervalSeconds,
+            bufferSeconds,
+            minBetAmount,
+            0,
+            0,
+            treasuryFee,
+            tokenDenom
+        );
+    }
+
+    function deployPredictionV3Pyth(
         address token,
         address oracleAddress,
         address adminAddress,
@@ -167,7 +255,7 @@ contract PredictionsFactory is Ownable {
     ) external onlyOwner {
         bytes memory data = abi.encodeWithSignature(
             "initialize(address,address,address,address,address,uint256,uint256,uint256,uint256,bytes32,uint256)",
-            owner(),
+            msg.sender,
             token,
             oracleAddress,
             adminAddress,
@@ -177,89 +265,24 @@ contract PredictionsFactory is Ownable {
             minBetAmount,
             oracleUpdateAllowance,
             priceFeedId,
-            treasuryFee
-        );
-        address instance = _deploy(data, Impl.V2Pyth);
-        emit Deployed(
-            instance,
-            Impl.V2Pyth,
-            token,
-            oracleAddress,
-            adminAddress,
-            operatorAddress,
-            intervalSeconds,
-            bufferSeconds,
-            minBetAmount,
-            oracleUpdateAllowance,
-            priceFeedId,
-            treasuryFee
-        );
-    }
-
-    /**
-     * @dev Deployment wrapper for boosted staker implementation
-     */
-    function deployPredictionV3(
-        address adminAddress,
-        address operatorAddress,
-        uint256 minBetAmount,
-        uint256 treasuryFee
-    ) external onlyOwner {
-        bytes memory data = abi.encodeWithSignature(
-            "initialize(address,address,address,uint256,uint256)",
-            owner(),
-            adminAddress,
-            operatorAddress,
-            minBetAmount,
-            treasuryFee
-        );
-        address instance = _deploy(data, Impl.V3);
-        emit Deployed(
-            instance,
-            Impl.V3,
-            address(0),
-            address(0),
-            adminAddress,
-            operatorAddress,
-            0,
-            0,
-            minBetAmount,
-            0,
-            0,
-            treasuryFee
-        );
-    }
-
-    function deployPredictionV3Pyth(
-        address token,
-        address adminAddress,
-        address operatorAddress,
-        uint256 minBetAmount,
-        uint256 treasuryFee
-    ) external onlyOwner {
-        bytes memory data = abi.encodeWithSignature(
-            "initialize(address,address,address,address,uint256,uint256)",
-            owner(),
-            token,
-            adminAddress,
-            operatorAddress,
-            minBetAmount,
             treasuryFee
         );
         address instance = _deploy(data, Impl.V3Pyth);
         emit Deployed(
+            msg.sender,
             instance,
             Impl.V3Pyth,
             token,
-            address(0),
+            oracleAddress,
             adminAddress,
             operatorAddress,
-            0,
-            0,
+            intervalSeconds,
+            bufferSeconds,
             minBetAmount,
-            0,
-            0,
-            treasuryFee
+            oracleUpdateAllowance,
+            priceFeedId,
+            treasuryFee,
+            string("")
         );
     }
 
