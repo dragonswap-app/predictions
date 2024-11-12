@@ -72,7 +72,7 @@ abstract contract PredictionBase is IPrediction, OwnableUpgradeable, PausableUpg
         uint256 _bufferSeconds,
         uint256 _minBetAmount,
         uint256 _treasuryFee
-    ) external initializer {
+    ) internal initializer {
         if (_treasuryFee > MAX_TREASURY_FEE) revert TreasuryFeeTooHigh();
         __Ownable_init(_owner);
         __Pausable_init();
@@ -364,6 +364,30 @@ abstract contract PredictionBase is IPrediction, OwnableUpgradeable, PausableUpg
             bearMultiplier = (poolSize * 100) / round.bearAmount;
         }
         return (poolSize, bullMultiplier, bearMultiplier);
+    }
+
+    function _bet(uint256 epoch, uint256 amount, bool bull) internal {
+        if (epoch != currentEpoch) revert BetUnavailable();
+        if (!_bettable(epoch)) revert NotBettable();
+        if (msg.value < minBetAmount) revert BetAmountTooLow();
+        if (ledger[epoch][msg.sender].amount != 0) revert AlreadyMadeABet();
+
+        // Update round data
+        Round storage round = rounds[epoch];
+        BetInfo storage betInfo = ledger[epoch][msg.sender];
+        round.totalAmount = round.totalAmount + amount;
+        if (bull) {
+            betInfo.position = Position.Bull;
+            round.bullAmount += amount;
+        } else {
+            betInfo.position = Position.Bear;
+            round.bearAmount += amount;
+        }
+
+        betInfo.amount = amount;
+        userRounds[msg.sender].push(epoch);
+
+        emit Bet(msg.sender, epoch, amount, bull);
     }
 
     /**
