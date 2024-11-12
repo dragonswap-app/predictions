@@ -377,7 +377,7 @@ abstract contract PredictionBase is IPrediction, OwnableUpgradeable, PausableUpg
     function _bet(uint256 epoch, uint256 amount, bool bull) internal {
         if (epoch != currentEpoch) revert BetUnavailable();
         if (!_bettable(epoch)) revert NotBettable();
-        if (msg.value < minBetAmount) revert BetAmountTooLow();
+        if (amount < minBetAmount) revert BetAmountTooLow();
         if (ledger[epoch][msg.sender].amount != 0) revert AlreadyMadeABet();
 
         // Update round data

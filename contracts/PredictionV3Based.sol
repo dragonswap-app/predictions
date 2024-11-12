@@ -2,13 +2,10 @@
 pragma solidity ^0.8.20;
 
 import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {PredictionBaseNative} from "./base/PredictionBaseNative.sol";
+import {PredictionBaseERC20} from "./base/PredictionBaseERC20.sol";
 import {SeiNativeOracleAdapter} from "@dragonswap/sei-native-oracle-adapter/src/SeiNativeOracleAdapter.sol";
 
-/**
- * @title PredictionV2.sol
- */
-contract PredictionV2 is PredictionBaseNative {
+contract PredictionV3 is PredictionBaseERC20 {
     using SafeERC20 for IERC20;
 
     string public tokenDenom;
@@ -24,6 +21,7 @@ contract PredictionV2 is PredictionBaseNative {
      */
     function initialize(
         address _owner,
+        address _token,
         address _adminAddress,
         address _operatorAddress,
         uint256 _intervalSeconds,
@@ -34,6 +32,8 @@ contract PredictionV2 is PredictionBaseNative {
     ) external initializer {
 
         initializeBase(_owner, _adminAddress, _operatorAddress, _intervalSeconds, _bufferSeconds, _minBetAmount, _treasuryFee);
+
+        setBettingToken(_token);
 
         if (SeiNativeOracleAdapter.getExchangeRate(_tokenDenom) == 0) revert UnsupportedToken();
         tokenDenom = _tokenDenom;

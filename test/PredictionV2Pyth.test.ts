@@ -118,18 +118,18 @@ describe("PredictionsV2", () => {
     await predictionsFactory.deployed();
 
     const predictionV2ImplmentationFactory =
-      await ethers.getContractFactory("PredictionV2Pyth");
+      await ethers.getContractFactory("PredictionV2PythBased");
     const predictionsV2Implementation =
       await predictionV2ImplmentationFactory.deploy();
     await predictionsV2Implementation.deployed();
 
     await predictionsFactory
       .connect(owner)
-      .setImplementationPredictionV2(predictionsV2Implementation.address);
+      .setImplementationPredictionV2Pyth(predictionsV2Implementation.address);
 
     const predictionV2CreationTx = await predictionsFactory
       .connect(owner)
-      .deployPredictionV2(
+      .deployPredictionV2Pyth(
         oracle.address,
         admin.address,
         operator.address,

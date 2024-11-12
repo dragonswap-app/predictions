@@ -2,16 +2,17 @@
 pragma solidity ^0.8.20;
 
 import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {PredictionBaseNative} from "./base/PredictionBaseNative.sol";
-import {SeiNativeOracleAdapter} from "@dragonswap/sei-native-oracle-adapter/src/SeiNativeOracleAdapter.sol";
+import {PredictionBaseERC20} from "./base/PredictionBaseERC20.sol";
+import {IPyth} from "@pythnetwork/pyth-sdk-solidity/IPyth.sol";
+import {PythStructs} from "@pythnetwork/pyth-sdk-solidity/PythStructs.sol";
 
-/**
- * @title PredictionV2.sol
- */
-contract PredictionV2 is PredictionBaseNative {
+contract PredictionV3PythBased is PredictionBaseERC20 {
     using SafeERC20 for IERC20;
 
-    string public tokenDenom;
+    IPyth public pythOracle;
+    bytes32 public priceFeedId;
+
+    uint256 public oracleUpdateAllowance; // seconds
 
     /**
      * @notice Initialize the contract
@@ -24,22 +25,30 @@ contract PredictionV2 is PredictionBaseNative {
      */
     function initialize(
         address _owner,
+        address _token,
+        address _oracleAddress,
         address _adminAddress,
         address _operatorAddress,
         uint256 _intervalSeconds,
         uint256 _bufferSeconds,
         uint256 _minBetAmount,
-        uint256 _treasuryFee,
-        string calldata _tokenDenom
+        uint256 _oracleUpdateAllowance,
+        bytes32 _priceFeedId,
+        uint256 _treasuryFee
     ) external initializer {
 
         initializeBase(_owner, _adminAddress, _operatorAddress, _intervalSeconds, _bufferSeconds, _minBetAmount, _treasuryFee);
 
-        if (SeiNativeOracleAdapter.getExchangeRate(_tokenDenom) == 0) revert UnsupportedToken();
-        tokenDenom = _tokenDenom;
+        setBettingToken(_token);
+
+        if (_oracleAddress == address(0)) revert InvalidAddress();
+        pythOracle = IPyth(_oracleAddress);
+
+        oracleUpdateAllowance = _oracleUpdateAllowance;
+        priceFeedId = _priceFeedId;
     }
 
     function _getPrice() internal view override returns (uint256) {
-        return SeiNativeOracleAdapter.getExchangeRate(tokenDenom);
+        return uint256(int256(pythOracle.getPriceNoOlderThan(priceFeedId, oracleUpdateAllowance).price));
     }
 }

@@ -138,7 +138,7 @@ describe("PredictionsV3", () => {
     await predictionsFactory.deployed();
 
     const predictionV3ImplmentationFactory =
-      await ethers.getContractFactory("PredictionV3Pyth");
+      await ethers.getContractFactory("PredictionV3PythBased");
     const predictionsV3Implementation =
       await predictionV3ImplmentationFactory.deploy();
     await predictionsV3Implementation.deployed();
@@ -147,6 +147,7 @@ describe("PredictionsV3", () => {
       .connect(owner)
       .setImplementationPredictionV3Pyth(predictionsV3Implementation.address);
 
+      console.log('a');
     const predictionV3CreationTx = await predictionsFactory
       .connect(owner)
       .deployPredictionV3Pyth(
@@ -165,7 +166,7 @@ describe("PredictionsV3", () => {
     const predictionV3TxReceipt = await predictionV3CreationTx.wait();
 
     prediction = await ethers.getContractAt(
-      "PredictionV3Pyth",
+      "PredictionV3PythBased",
       predictionV3TxReceipt.logs[0].address,
     );
 

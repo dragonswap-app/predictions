@@ -2,15 +2,11 @@
 pragma solidity ^0.8.20;
 
 import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {PredictionBaseNative} from "./PredictionBaseNative.sol";
-import {SeiNativeOracleAdapter} from "@dragonswap/sei-native-oracle-adapter/src/SeiNativeOracleAdapter.sol";
+import {PredictionBaseNative} from "./base/PredictionBaseNative.sol";
 import {IPyth} from "@pythnetwork/pyth-sdk-solidity/IPyth.sol";
 import {PythStructs} from "@pythnetwork/pyth-sdk-solidity/PythStructs.sol";
 
-/**
- * @title PredictionV2.sol
- */
-contract PredictionV2 is PredictionBaseNative {
+contract PredictionV2PythBased is PredictionBaseNative {
     using SafeERC20 for IERC20;
 
     IPyth public pythOracle;
