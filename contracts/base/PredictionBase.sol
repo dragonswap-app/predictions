@@ -5,12 +5,12 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {IPrediction} from "./interfaces/IPrediction.sol";
+import {IPrediction} from "../interfaces/IPrediction.sol";
 
 abstract contract PredictionBase is IPrediction, OwnableUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
     using SafeERC20 for IERC20;
 
-    IERC20 public token;
+    IERC20 public token; // Token being address(0) implies that bets are paid in native.
 
     bool public genesisLockOnce;
     bool public genesisStartOnce;
