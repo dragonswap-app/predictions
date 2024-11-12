@@ -28,8 +28,9 @@ interface IPrediction {
         bool claimed; // default false
     }
 
-    event BetBear(address indexed sender, uint256 indexed epoch, uint256 amount);
-    event BetBull(address indexed sender, uint256 indexed epoch, uint256 amount);
+    event BetBear(address indexed sender, uint256 indexed epoch, uint256 amount);//de
+    event BetBull(address indexed sender, uint256 indexed epoch, uint256 amount);//de
+    event Bet(address indexed sender, uint256 indexed epoch, uint256 amount, bool bull);
     event Claim(address indexed sender, uint256 indexed epoch, uint256 amount);
     event EndRound(uint256 indexed epoch, uint256 price);
     event LockRound(uint256 indexed epoch, uint256 price);
