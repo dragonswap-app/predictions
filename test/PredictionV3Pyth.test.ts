@@ -138,18 +138,18 @@ describe("PredictionsV3", () => {
     await predictionsFactory.deployed();
 
     const predictionV3ImplmentationFactory =
-      await ethers.getContractFactory("PredictionV3");
+      await ethers.getContractFactory("PredictionV3Pyth");
     const predictionsV3Implementation =
       await predictionV3ImplmentationFactory.deploy();
     await predictionsV3Implementation.deployed();
 
     await predictionsFactory
       .connect(owner)
-      .setImplementationPredictionV3(predictionsV3Implementation.address);
+      .setImplementationPredictionV3Pyth(predictionsV3Implementation.address);
 
     const predictionV3CreationTx = await predictionsFactory
       .connect(owner)
-      .deployPredictionV3(
+      .deployPredictionV3Pyth(
         mockERC20.address,
         oracle.address,
         admin.address,
@@ -165,7 +165,7 @@ describe("PredictionsV3", () => {
     const predictionV3TxReceipt = await predictionV3CreationTx.wait();
 
     prediction = await ethers.getContractAt(
-      "PredictionV3",
+      "PredictionV3Pyth",
       predictionV3TxReceipt.logs[0].address,
     );
 
