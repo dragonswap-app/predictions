@@ -10,6 +10,8 @@ import {IPrediction} from "./interfaces/IPrediction.sol";
 abstract contract PredictionBase is IPrediction, OwnableUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
     using SafeERC20 for IERC20;
 
+    IERC20 public token;
+
     bool public genesisLockOnce;
     bool public genesisStartOnce;
 
@@ -86,6 +88,11 @@ abstract contract PredictionBase is IPrediction, OwnableUpgradeable, PausableUpg
         bufferSeconds = _bufferSeconds;
         minBetAmount = _minBetAmount;
         treasuryFee = _treasuryFee;
+    }
+
+    function setBettingToken(address _token) internal initializer {
+        if (_token == address(0)) revert InvalidAddress();
+        token = IERC20(_token);
     }
 
     /**
@@ -263,10 +270,11 @@ abstract contract PredictionBase is IPrediction, OwnableUpgradeable, PausableUpg
      * @param _amount: token amount
      * @dev Callable by owner
      */
-    function recoverToken(address _token, uint256 _amount) external virtual onlyOwner {
-        IERC20(_token).safeTransfer(address(msg.sender), _amount);
+    function recoverToken(IERC20 _token, uint256 _amount) external virtual onlyOwner {
+        if (_token == token) revert InvalidAddress();
+        _token.safeTransfer(address(msg.sender), _amount);
 
-        emit TokenRecovery(_token, _amount);
+        emit TokenRecovery(address(_token), _amount);
     }
 
     /**
