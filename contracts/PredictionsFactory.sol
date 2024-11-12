@@ -28,7 +28,6 @@ contract PredictionsFactory is Ownable {
 
     // Events
     event Deployed(
-        address indexed owner,
         address indexed instance,
         Impl indexed impType,
         address token,
@@ -123,7 +122,7 @@ contract PredictionsFactory is Ownable {
     ) external onlyOwner {
         bytes memory data = abi.encodeWithSignature(
             "initialize(address,address,address,uint256,uint256,uint256,uint256,string)",
-            msg.sender,
+            owner(),
             adminAddress,
             operatorAddress,
             intervalSeconds,
@@ -134,7 +133,6 @@ contract PredictionsFactory is Ownable {
         );
         address instance = _deploy(data, Impl.V2);
         emit Deployed(
-            msg.sender,
             instance,
             Impl.V2,
             address(0),
@@ -167,7 +165,7 @@ contract PredictionsFactory is Ownable {
     ) external onlyOwner {
         bytes memory data = abi.encodeWithSignature(
             "initialize(address,address,address,address,uint256,uint256,uint256,uint256,bytes32,uint256)",
-            msg.sender,
+            owner(),
             oracleAddress,
             adminAddress,
             operatorAddress,
@@ -180,7 +178,6 @@ contract PredictionsFactory is Ownable {
         );
         address instance = _deploy(data, Impl.V2Pyth);
         emit Deployed(
-            msg.sender,
             instance,
             Impl.V2Pyth,
             address(0),
@@ -212,7 +209,7 @@ contract PredictionsFactory is Ownable {
     ) external onlyOwner {
         bytes memory data = abi.encodeWithSignature(
             "initialize(address,address,address,address,uint256,uint256,uint256,uint256,string)",
-            msg.sender,
+            owner(),
             token,
             adminAddress,
             operatorAddress,
@@ -224,7 +221,6 @@ contract PredictionsFactory is Ownable {
         );
         address instance = _deploy(data, Impl.V3);
         emit Deployed(
-            msg.sender,
             instance,
             Impl.V3,
             SeiNativeOracleAdapter.ORACLE_PRECOMPILE_ADDRESS,
@@ -255,7 +251,7 @@ contract PredictionsFactory is Ownable {
     ) external onlyOwner {
         bytes memory data = abi.encodeWithSignature(
             "initialize(address,address,address,address,address,uint256,uint256,uint256,uint256,bytes32,uint256)",
-            msg.sender,
+            owner(),
             token,
             oracleAddress,
             adminAddress,
@@ -269,7 +265,6 @@ contract PredictionsFactory is Ownable {
         );
         address instance = _deploy(data, Impl.V3Pyth);
         emit Deployed(
-            msg.sender,
             instance,
             Impl.V3Pyth,
             token,
