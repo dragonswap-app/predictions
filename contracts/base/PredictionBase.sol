@@ -74,7 +74,7 @@ abstract contract PredictionBase is IPrediction, OwnableUpgradeable, PausableUpg
         uint256 _bufferSeconds,
         uint256 _minBetAmount,
         uint256 _treasuryFee
-    ) internal initializer {
+    ) internal onlyInitializing {
         if (_treasuryFee > MAX_TREASURY_FEE) revert TreasuryFeeTooHigh();
         __Ownable_init(_owner);
         __Pausable_init();
