@@ -35,14 +35,15 @@ contract PredictionV2Pyth is PredictionBaseNative {
         bytes32 _priceFeedId,
         uint256 _treasuryFee
     ) external initializer {
-
-        initializeBase(_owner, _adminAddress, _operatorAddress, _intervalSeconds, _bufferSeconds, _minBetAmount, _treasuryFee);
+        initializeBase(
+            _owner, _adminAddress, _operatorAddress, _intervalSeconds, _bufferSeconds, _minBetAmount, _treasuryFee
+        );
 
         if (_oracleAddress == address(0)) revert InvalidAddress();
         pythOracle = IPyth(_oracleAddress);
 
         oracleUpdateAllowance = _oracleUpdateAllowance;
-        if(_priceFeedId == bytes32(0)) revert InvalidBytes32Value();
+        if (_priceFeedId == bytes32(0)) revert InvalidBytes32Value();
         priceFeedId = _priceFeedId;
     }
 
@@ -56,7 +57,7 @@ contract PredictionV2Pyth is PredictionBaseNative {
      */
     function setOracleAndPriceFeedId(address _oracle, bytes32 _priceFeedId) external whenPaused onlyAdmin {
         if (_oracle == address(0)) revert InvalidAddress();
-        if(_priceFeedId == bytes32(0)) revert InvalidBytes32Value();
+        if (_priceFeedId == bytes32(0)) revert InvalidBytes32Value();
 
         pythOracle = IPyth(_oracle);
         priceFeedId = _priceFeedId;

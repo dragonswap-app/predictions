@@ -66,10 +66,7 @@ contract PredictionV4 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuar
     event NewOperatorAddress(address operator);
 
     event RewardsCalculated(
-        uint256 indexed round,
-        uint256 rewardBaseCalAmount,
-        uint256 rewardAmount,
-        uint256 treasuryAmount
+        uint256 indexed round, uint256 rewardBaseCalAmount, uint256 rewardAmount, uint256 treasuryAmount
     );
 
     event TokenRecovery(address indexed token, uint256 amount);
@@ -229,7 +226,7 @@ contract PredictionV4 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuar
     }
 
     /**
-    /**
+     * /**
      * @notice called by the admin to pause, triggers stopped state
      * @dev Callable by admin or operator
      */
@@ -324,11 +321,11 @@ contract PredictionV4 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuar
      * @param cursor: cursor
      * @param size: size
      */
-    function getUserRounds(
-        address user,
-        uint256 cursor,
-        uint256 size
-    ) external view returns (uint256[] memory, BetInfo[] memory, uint256) {
+    function getUserRounds(address user, uint256 cursor, uint256 size)
+        external
+        view
+        returns (uint256[] memory, BetInfo[] memory, uint256)
+    {
         uint256 length = size;
 
         if (length > userRounds[user].length - cursor) {
@@ -338,7 +335,7 @@ contract PredictionV4 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuar
         uint256[] memory values = new uint256[](length);
         BetInfo[] memory betInfo = new BetInfo[](length);
 
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i = 0; i < length; ++i) {
             values[i] = userRounds[user][cursor + i];
             betInfo[i] = ledger[values[i]][user];
         }
@@ -363,12 +360,11 @@ contract PredictionV4 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuar
         BetInfo memory betInfo = ledger[roundId][user];
         Round memory round = rounds[roundId];
 
-        return
-            round.roundClosed &&
-            betInfo.amount != 0 &&
-            !betInfo.claimed &&
-            ((round.outcome == Outcome.Up && betInfo.position == Position.Bull) ||
-                (round.outcome == Outcome.Down && betInfo.position == Position.Bear));
+        return round.roundClosed && betInfo.amount != 0 && !betInfo.claimed
+            && (
+                (round.outcome == Outcome.Up && betInfo.position == Position.Bull)
+                    || (round.outcome == Outcome.Down && betInfo.position == Position.Bear)
+            );
     }
 
     /**
@@ -422,19 +418,19 @@ contract PredictionV4 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuar
      * @param roundId: round id
      */
     function _bettable(uint256 roundId) internal view returns (bool) {
-        return
-            rounds[roundId].startTimestamp != 0 &&
-            rounds[roundId].startTimestamp < block.timestamp &&
-            !rounds[roundId].roundClosed;
+        return rounds[roundId].startTimestamp != 0 && rounds[roundId].startTimestamp < block.timestamp
+            && !rounds[roundId].roundClosed;
     }
 
     /**
      * @notice Get round stats
      * @param roundId: round id
      */
-    function roundStats(
-        uint256 roundId
-    ) public view returns (uint256 poolSize, uint256 bullMultiplier, uint256 bearMultiplier) {
+    function roundStats(uint256 roundId)
+        public
+        view
+        returns (uint256 poolSize, uint256 bullMultiplier, uint256 bearMultiplier)
+    {
         Round memory round = rounds[roundId];
         poolSize = round.totalAmount;
         if (round.bullAmount > 0) {
@@ -452,7 +448,7 @@ contract PredictionV4 is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuar
      * @param value: Native token amount to transfer (in wei)
      */
     function _safeTransferNative(address to, uint256 value) internal {
-        (bool success, ) = to.call{value: value}("");
+        (bool success,) = to.call{value: value}("");
         require(success, "TransferHelper: NATIVE_TOKEN_TRANSFER_FAILED");
     }
 

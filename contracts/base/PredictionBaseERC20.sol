@@ -11,6 +11,7 @@ abstract contract PredictionBaseERC20 is PredictionBase {
      * @param epoch: epoch
      * @param bull: true -> bull / false -> bear
      */
+
     function bet(uint256 epoch, uint256 amount, bool bull) external whenNotPaused nonReentrant onlyEOA {
         _bet(epoch, amount, bull);
         token.safeTransferFrom(msg.sender, address(this), amount);
@@ -20,7 +21,5 @@ abstract contract PredictionBaseERC20 is PredictionBase {
         token.safeTransfer(to, value);
     }
 
-    function _getPrice() internal override virtual returns (uint256) {
-
-    }
+    function _getPrice() internal virtual override returns (uint256) {}
 }

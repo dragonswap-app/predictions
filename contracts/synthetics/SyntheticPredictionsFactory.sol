@@ -125,27 +125,15 @@ contract SyntheticPredictionsFactory is Ownable {
         );
         address instance = _deploy(data, Impl.V5);
         emit Deployed(
-            instance,
-            Impl.V5,
-            token,
-            address(0),
-            adminAddress,
-            operatorAddress,
-            0,
-            0,
-            minBetAmount,
-            0,
-            0,
-            treasuryFee
+            instance, Impl.V5, token, address(0), adminAddress, operatorAddress, 0, 0, minBetAmount, 0, 0, treasuryFee
         );
     }
     /**
      * @dev Function to make a new deployment and initialize clone instance
      */
+
     function _deploy(bytes memory data, Impl implType) private returns (address instance) {
-        address impl = implType == Impl.V4
-            ? implPredictionV4
-            : implType == Impl.V5 ? implPredictionV5 : address(0);
+        address impl = implType == Impl.V4 ? implPredictionV4 : implType == Impl.V5 ? implPredictionV5 : address(0);
 
         // Require that implementation is set
         if (impl == address(0)) {
@@ -172,7 +160,7 @@ contract SyntheticPredictionsFactory is Ownable {
         deployments.push(instance);
 
         // Initialize
-        (bool success, ) = instance.call{value: 0}(data);
+        (bool success,) = instance.call{value: 0}(data);
         if (!success) revert();
     }
 
@@ -200,10 +188,11 @@ contract SyntheticPredictionsFactory is Ownable {
      * @param endIndex Last index
      * @return _deployments All deployments between provided indexes, inclusive
      */
-    function getAllDeployments(
-        uint256 startIndex,
-        uint256 endIndex
-    ) external view returns (address[] memory _deployments) {
+    function getAllDeployments(uint256 startIndex, uint256 endIndex)
+        external
+        view
+        returns (address[] memory _deployments)
+    {
         // Require valid index input
         if (endIndex < startIndex || endIndex >= deployments.length) {
             revert InvalidIndexRange();
@@ -212,7 +201,7 @@ contract SyntheticPredictionsFactory is Ownable {
         _deployments = new address[](endIndex - startIndex + 1);
         uint256 index = 0;
         // Fill the array with sale addresses
-        for (uint256 i = startIndex; i <= endIndex; i++) {
+        for (uint256 i = startIndex; i <= endIndex; ++i) {
             _deployments[index] = deployments[i];
             index++;
         }

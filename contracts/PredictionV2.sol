@@ -32,8 +32,9 @@ contract PredictionV2 is PredictionBaseNative {
         uint256 _treasuryFee,
         string calldata _tokenDenom
     ) external initializer {
-
-        initializeBase(_owner, _adminAddress, _operatorAddress, _intervalSeconds, _bufferSeconds, _minBetAmount, _treasuryFee);
+        initializeBase(
+            _owner, _adminAddress, _operatorAddress, _intervalSeconds, _bufferSeconds, _minBetAmount, _treasuryFee
+        );
 
         if (SeiNativeOracleAdapter.getExchangeRate(_tokenDenom) == 0) revert UnsupportedToken();
         tokenDenom = _tokenDenom;

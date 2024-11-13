@@ -289,11 +289,7 @@ contract PredictionsFactory is Ownable {
             ? implPredictionV2
             : implType == Impl.V2Pyth
                 ? implPredictionV2Pyth
-                : implType == Impl.V3
-                    ? implPredictionV3
-                    : implType == Impl.V3Pyth
-                        ? implPredictionV3Pyth
-                        : address(0);
+                : implType == Impl.V3 ? implPredictionV3 : implType == Impl.V3Pyth ? implPredictionV3Pyth : address(0);
 
         // Require that implementation is set
         if (impl == address(0)) {
@@ -320,7 +316,7 @@ contract PredictionsFactory is Ownable {
         deployments.push(instance);
 
         // Initialize
-        (bool success, ) = instance.call{value: 0}(data);
+        (bool success,) = instance.call{value: 0}(data);
         if (!success) revert();
     }
 
@@ -348,10 +344,11 @@ contract PredictionsFactory is Ownable {
      * @param endIndex Last index
      * @return _deployments All deployments between provided indexes, inclusive
      */
-    function getAllDeployments(
-        uint256 startIndex,
-        uint256 endIndex
-    ) external view returns (address[] memory _deployments) {
+    function getAllDeployments(uint256 startIndex, uint256 endIndex)
+        external
+        view
+        returns (address[] memory _deployments)
+    {
         // Require valid index input
         if (endIndex < startIndex || endIndex >= deployments.length) {
             revert InvalidIndexRange();
@@ -360,7 +357,7 @@ contract PredictionsFactory is Ownable {
         _deployments = new address[](endIndex - startIndex + 1);
         uint256 index = 0;
         // Fill the array with sale addresses
-        for (uint256 i = startIndex; i <= endIndex; i++) {
+        for (uint256 i = startIndex; i <= endIndex; ++i) {
             _deployments[index] = deployments[i];
             index++;
         }

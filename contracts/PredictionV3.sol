@@ -30,8 +30,9 @@ contract PredictionV3 is PredictionBaseERC20 {
         uint256 _treasuryFee,
         string calldata _tokenDenom
     ) external initializer {
-
-        initializeBase(_owner, _adminAddress, _operatorAddress, _intervalSeconds, _bufferSeconds, _minBetAmount, _treasuryFee);
+        initializeBase(
+            _owner, _adminAddress, _operatorAddress, _intervalSeconds, _bufferSeconds, _minBetAmount, _treasuryFee
+        );
 
         setBettingToken(_token);
 

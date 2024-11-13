@@ -18,7 +18,5 @@ abstract contract PredictionBaseNative is PredictionBase {
         if (!success) revert SeiTransferFailed();
     }
 
-    function _getPrice() internal override virtual returns (uint256) {
-
-    }
+    function _getPrice() internal virtual override returns (uint256) {}
 }
