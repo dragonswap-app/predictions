@@ -83,6 +83,6 @@ interface IPrediction {
     error AlreadyMadeABet();
     error BetAmountTooLow();
     error BetUnavailable();
-
+    error InvalidBytes32Value();
 
 }
