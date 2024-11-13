@@ -144,7 +144,7 @@ describe("PredictionsV2", () => {
     const predictionV2TxReceipt = await predictionV2CreationTx.wait();
 
     prediction = await ethers.getContractAt(
-      "PredictionV2Pyth",
+      "PredictionV2PythBased",
       predictionV2TxReceipt.logs[0].address,
     );
   });
@@ -260,15 +260,15 @@ describe("PredictionsV2", () => {
 
   it("Should not start rounds before genesis start and lock round has triggered", async () => {
     await expect(prediction.genesisLockRound()).to.be.revertedWith(
-      "Can only run after genesisStartRound is triggered",
+      "GenesisNotStarted()",
     );
     await expect(prediction.executeRound()).to.be.revertedWith(
-      "Can only run after genesisStartRound and genesisLockRound is triggered",
+      "GenesisNotManaged()",
     );
 
     await prediction.genesisStartRound();
     await expect(prediction.executeRound()).to.be.revertedWith(
-      "Can only run after genesisStartRound and genesisLockRound is triggered",
+      "GenesisNotManaged()",
     );
 
     await nextEpoch();
@@ -282,14 +282,13 @@ describe("PredictionsV2", () => {
   it("Should not lock round before lockTimestamp and end round before closeTimestamp", async () => {
     await prediction.genesisStartRound();
     await expect(
-      prediction.genesisLockRound(),
-      "Can only lock round after lockTimestamp",
-    ).to.be.revertedWith("Can only lock round after lockTimestamp");
+      prediction.genesisLockRound()
+    ).to.be.revertedWith("CannotLockYet()");
     await nextEpoch();
     await prediction.genesisLockRound();
     await updateOraclePrice(INITIAL_PRICE); // To update Oracle roundId
     await expect(prediction.executeRound()).to.be.revertedWith(
-      "Can only lock round after lockTimestamp",
+      "CannotLockYet()",
     );
 
     await nextEpoch();
@@ -360,13 +359,13 @@ describe("PredictionsV2", () => {
 
     await prediction
       .connect(bullUser1)
-      .betBull(currentEpoch, { value: parseEther("1.1").toString() }); // 1.1 SEI
+      .bet(currentEpoch, true, { value: parseEther("1.1").toString() }); // 1.1 SEI
     await prediction
       .connect(bullUser2)
-      .betBull(currentEpoch, { value: parseEther("1.2").toString() }); // 1.2 SEI
+      .bet(currentEpoch, true, { value: parseEther("1.2").toString() }); // 1.2 SEI
     await prediction
       .connect(bearUser1)
-      .betBear(currentEpoch, { value: parseEther("1.4").toString() }); // 1.4 SEI
+      .bet(currentEpoch, false, { value: parseEther("1.4").toString() }); // 1.4 SEI
 
     let balance = await ethers.provider.getBalance(prediction.address);
     assert.equal(balance.toString(), parseEther("3.7").toString()); // 3.7 SEI
@@ -427,13 +426,13 @@ describe("PredictionsV2", () => {
 
     await prediction
       .connect(bullUser1)
-      .betBull(currentEpoch, { value: parseEther("2.1").toString() }); // 2.1 SEI
+      .bet(currentEpoch, true, { value: parseEther("2.1").toString() }); // 2.1 SEI
     await prediction
       .connect(bullUser2)
-      .betBull(currentEpoch, { value: parseEther("2.2").toString() }); // 2.2 SEI
+      .bet(currentEpoch, true, { value: parseEther("2.2").toString() }); // 2.2 SEI
     await prediction
       .connect(bearUser1)
-      .betBear(currentEpoch, { value: parseEther("2.4").toString() }); // 2.4 SEI
+      .bet(currentEpoch, false, { value: parseEther("2.4").toString() }); // 2.4 SEI
 
     balance = await ethers.provider.getBalance(prediction.address);
     assert.equal(balance.toString(), parseEther("10.4").toString()); // 10.4 SEI (3.7+6.7)
@@ -495,13 +494,13 @@ describe("PredictionsV2", () => {
 
     await prediction
       .connect(bullUser1)
-      .betBull(currentEpoch, { value: parseEther("3.1").toString() }); // 3.1 SEI
+      .bet(currentEpoch, true, { value: parseEther("3.1").toString() }); // 3.1 SEI
     await prediction
       .connect(bullUser2)
-      .betBull(currentEpoch, { value: parseEther("3.2").toString() }); // 3.2 SEI
+      .bet(currentEpoch, true, { value: parseEther("3.2").toString() }); // 3.2 SEI
     await prediction
       .connect(bearUser1)
-      .betBear(currentEpoch, { value: parseEther("3.4").toString() }); // 4.3 SEI
+      .bet(currentEpoch, false, { value: parseEther("3.4").toString() }); // 4.3 SEI
 
     balance = await ethers.provider.getBalance(prediction.address);
     assert.equal(balance.toString(), parseEther("20.1").toString()); // 20.1 SEI (3.7+6.7+9.7)
@@ -563,13 +562,13 @@ describe("PredictionsV2", () => {
 
     await prediction
       .connect(bullUser1)
-      .betBull(currentEpoch, { value: parseEther("4.1").toString() }); // 4.1 SEI
+      .bet(currentEpoch, true, { value: parseEther("4.1").toString() }); // 4.1 SEI
     await prediction
       .connect(bullUser2)
-      .betBull(currentEpoch, { value: parseEther("4.2").toString() }); // 4.2 SEI
+      .bet(currentEpoch, true, { value: parseEther("4.2").toString() }); // 4.2 SEI
     await prediction
       .connect(bearUser1)
-      .betBear(currentEpoch, { value: parseEther("4.4").toString() }); // 4.4 SEI
+      .bet(currentEpoch, false, { value: parseEther("4.4").toString() }); // 4.4 SEI
 
     balance = await ethers.provider.getBalance(prediction.address);
     assert.equal(balance.toString(), parseEther("32.8").toString()); // 32.8 SEI (3.7+6.7+9.7+12.7)
@@ -631,30 +630,30 @@ describe("PredictionsV2", () => {
 
     await prediction
       .connect(bullUser1)
-      .betBull(currentEpoch, { value: parseEther("1").toString() }); // Success
+      .bet(currentEpoch, true, { value: parseEther("1").toString() }); // Success
     await expect(
       prediction
         .connect(bullUser1)
-        .betBull(currentEpoch, { value: parseEther("1").toString() }),
-    ).to.be.revertedWith("Can only bet once per round");
+        .bet(currentEpoch, true, { value: parseEther("1").toString() }),
+    ).to.be.revertedWith("AlreadyMadeABet()");
     await expect(
       prediction
         .connect(bullUser1)
-        .betBear(currentEpoch, { value: parseEther("1").toString() }),
-    ).to.be.revertedWith("Can only bet once per round");
+        .bet(currentEpoch, false, { value: parseEther("1").toString() }),
+    ).to.be.revertedWith("AlreadyMadeABet()");
     await prediction
       .connect(bearUser1)
-      .betBear(currentEpoch, { value: parseEther("1").toString() }); // Success
+      .bet(currentEpoch, false, { value: parseEther("1").toString() }); // Success
     await expect(
       prediction
         .connect(bearUser1)
-        .betBull(currentEpoch, { value: parseEther("1").toString() }),
-    ).to.be.revertedWith("Can only bet once per round");
+        .bet(currentEpoch, true, { value: parseEther("1").toString() }),
+    ).to.be.revertedWith("AlreadyMadeABet()");
     await expect(
       prediction
         .connect(bearUser1)
-        .betBear(currentEpoch, { value: parseEther("1").toString() }),
-    ).to.be.revertedWith("Can only bet once per round");
+        .bet(currentEpoch, false, { value: parseEther("1").toString() }),
+    ).to.be.revertedWith("AlreadyMadeABet()");
 
     // Epoch 2
     await nextEpoch();
@@ -663,30 +662,30 @@ describe("PredictionsV2", () => {
 
     await prediction
       .connect(bullUser1)
-      .betBull(currentEpoch, { value: parseEther("1").toString() }); // Success
+      .bet(currentEpoch, true, { value: parseEther("1").toString() }); // Success
     await expect(
       prediction
         .connect(bullUser1)
-        .betBull(currentEpoch, { value: parseEther("1").toString() }),
-    ).to.be.revertedWith("Can only bet once per round");
+        .bet(currentEpoch, true, { value: parseEther("1").toString() }),
+    ).to.be.revertedWith("AlreadyMadeABet()");
     await expect(
       prediction
         .connect(bullUser1)
-        .betBear(currentEpoch, { value: parseEther("1").toString() }),
-    ).to.be.revertedWith("Can only bet once per round");
+        .bet(currentEpoch, false, { value: parseEther("1").toString() }),
+    ).to.be.revertedWith("AlreadyMadeABet()");
     await prediction
       .connect(bearUser1)
-      .betBear(currentEpoch, { value: parseEther("1").toString() }); // Success
+      .bet(currentEpoch, false, { value: parseEther("1").toString() }); // Success
     await expect(
       prediction
         .connect(bearUser1)
-        .betBull(currentEpoch, { value: parseEther("1").toString() }),
-    ).to.be.revertedWith("Can only bet once per round");
+        .bet(currentEpoch, true, { value: parseEther("1").toString() }),
+    ).to.be.revertedWith("AlreadyMadeABet()");
     await expect(
       prediction
         .connect(bearUser1)
-        .betBear(currentEpoch, { value: parseEther("1").toString() }),
-    ).to.be.revertedWith("Can only bet once per round");
+        .bet(currentEpoch, false, { value: parseEther("1").toString() }),
+    ).to.be.revertedWith("AlreadyMadeABet()");
 
     // Epoch 3
     await nextEpoch();
@@ -696,30 +695,30 @@ describe("PredictionsV2", () => {
 
     await prediction
       .connect(bullUser1)
-      .betBull(currentEpoch, { value: parseEther("1").toString() }); // Success
+      .bet(currentEpoch, true, { value: parseEther("1").toString() }); // Success
     await expect(
       prediction
         .connect(bullUser1)
-        .betBull(currentEpoch, { value: parseEther("1").toString() }),
-    ).to.be.revertedWith("Can only bet once per round");
+        .bet(currentEpoch, true, { value: parseEther("1").toString() }),
+    ).to.be.revertedWith("AlreadyMadeABet()");
     await expect(
       prediction
         .connect(bullUser1)
-        .betBear(currentEpoch, { value: parseEther("1").toString() }),
-    ).to.be.revertedWith("Can only bet once per round");
+        .bet(currentEpoch, false, { value: parseEther("1").toString() }),
+    ).to.be.revertedWith("AlreadyMadeABet()");
     await prediction
       .connect(bearUser1)
-      .betBear(currentEpoch, { value: parseEther("1").toString() }); // Success
+      .bet(currentEpoch, false, { value: parseEther("1").toString() }); // Success
     await expect(
       prediction
         .connect(bearUser1)
-        .betBull(currentEpoch, { value: parseEther("1").toString() }),
-    ).to.be.revertedWith("Can only bet once per round");
+        .bet(currentEpoch, true, { value: parseEther("1").toString() }),
+    ).to.be.revertedWith("AlreadyMadeABet()");
     await expect(
       prediction
         .connect(bearUser1)
-        .betBear(currentEpoch, { value: parseEther("1").toString() }),
-    ).to.be.revertedWith("Can only bet once per round");
+        .bet(currentEpoch, false, { value: parseEther("1").toString() }),
+    ).to.be.revertedWith("AlreadyMadeABet()");
   });
 
   it("Should not allow bets lesser than minimum bet amount", async () => {
@@ -730,11 +729,11 @@ describe("PredictionsV2", () => {
     await expect(
       prediction
         .connect(bullUser1)
-        .betBull(currentEpoch, { value: parseEther("0.5").toString() }),
-    ).to.be.revertedWith("Bet amount must be greater than minBetAmount"); // 0.5 SEI
+        .bet(currentEpoch, true, { value: parseEther("0.5").toString() }),
+    ).to.be.revertedWith("BetAmountTooLow()"); // 0.5 SEI
     await prediction
       .connect(bullUser1)
-      .betBull(currentEpoch, { value: parseEther("1").toString() }); // Success
+      .bet(currentEpoch, true, { value: parseEther("1").toString() }); // Success
 
     // Epoch 2
     await nextEpoch();
@@ -744,12 +743,12 @@ describe("PredictionsV2", () => {
     await expect(
       prediction
         .connect(bullUser1)
-        .betBull(currentEpoch, { value: parseEther("0.5").toString() }),
-      "Bet amount must be greater than minBetAmount",
-    ).to.be.revertedWith("Bet amount must be greater than minBetAmount"); // 0.5 SEI
+        .bet(currentEpoch, true, { value: parseEther("0.5").toString() }),
+      "BetAmountTooLow()",
+    ).to.be.revertedWith("BetAmountTooLow()"); // 0.5 SEI
     await prediction
       .connect(bullUser1)
-      .betBull(currentEpoch, { value: parseEther("1").toString() }); // Success
+      .bet(currentEpoch, true, { value: parseEther("1").toString() }); // Success
 
     // Epoch 3
     await nextEpoch();
@@ -760,11 +759,11 @@ describe("PredictionsV2", () => {
     await expect(
       prediction
         .connect(bullUser1)
-        .betBull(currentEpoch, { value: parseEther("0.5").toString() }),
-    ).to.be.revertedWith("Bet amount must be greater than minBetAmount"); // 0.5 SEI
+        .bet(currentEpoch, true, { value: parseEther("0.5").toString() }),
+    ).to.be.revertedWith("BetAmountTooLow()"); // 0.5 SEI
     await prediction
       .connect(bullUser1)
-      .betBull(currentEpoch, { value: parseEther("1").toString() }); // Success
+      .bet(currentEpoch, true, { value: parseEther("1").toString() }); // Success
   });
 
   it("Should record rewards", async () => {
@@ -776,13 +775,13 @@ describe("PredictionsV2", () => {
 
     await prediction
       .connect(bullUser1)
-      .betBull(currentEpoch, { value: parseEther("1.1").toString() }); // 1.1 SEI
+      .bet(currentEpoch, true, { value: parseEther("1.1").toString() }); // 1.1 SEI
     await prediction
       .connect(bullUser2)
-      .betBull(currentEpoch, { value: parseEther("1.2").toString() }); // 1.2 SEI
+      .bet(currentEpoch, true, { value: parseEther("1.2").toString() }); // 1.2 SEI
     await prediction
       .connect(bearUser1)
-      .betBear(currentEpoch, { value: parseEther("1.4").toString() }); // 1.4 SEI
+      .bet(currentEpoch, false, { value: parseEther("1.4").toString() }); // 1.4 SEI
 
     assert.equal((await prediction.rounds(1)).rewardBaseCalAmount, 0);
     assert.equal((await prediction.rounds(1)).rewardAmount, 0);
@@ -799,13 +798,13 @@ describe("PredictionsV2", () => {
 
     await prediction
       .connect(bullUser1)
-      .betBull(currentEpoch, { value: parseEther("2.1").toString() }); // 2.1 SEI
+      .bet(currentEpoch, true, { value: parseEther("2.1").toString() }); // 2.1 SEI
     await prediction
       .connect(bullUser2)
-      .betBull(currentEpoch, { value: parseEther("2.2").toString() }); // 2.2 SEI
+      .bet(currentEpoch, true, { value: parseEther("2.2").toString() }); // 2.2 SEI
     await prediction
       .connect(bearUser1)
-      .betBear(currentEpoch, { value: parseEther("2.4").toString() }); // 2.4 SEI
+      .bet(currentEpoch, false, { value: parseEther("2.4").toString() }); // 2.4 SEI
 
     assert.equal((await prediction.rounds(1)).rewardBaseCalAmount, 0);
     assert.equal((await prediction.rounds(1)).rewardAmount, 0);
@@ -827,13 +826,13 @@ describe("PredictionsV2", () => {
 
     await prediction
       .connect(bullUser1)
-      .betBull(currentEpoch, { value: parseEther("3.1").toString() }); // 3.1 SEI
+      .bet(currentEpoch, true, { value: parseEther("3.1").toString() }); // 3.1 SEI
     await prediction
       .connect(bullUser2)
-      .betBull(currentEpoch, { value: parseEther("3.2").toString() }); // 3.2 SEI
+      .bet(currentEpoch, true, { value: parseEther("3.2").toString() }); // 3.2 SEI
     await prediction
       .connect(bearUser1)
-      .betBear(currentEpoch, { value: parseEther("3.4").toString() }); // 3.4 SEI
+      .bet(currentEpoch, false, { value: parseEther("3.4").toString() }); // 3.4 SEI
 
     assert.equal(
       (await prediction.rounds(1)).rewardBaseCalAmount,
@@ -867,13 +866,13 @@ describe("PredictionsV2", () => {
 
     await prediction
       .connect(bullUser1)
-      .betBull(currentEpoch, { value: parseEther("4.1").toString() }); // 4.1 SEI
+      .bet(currentEpoch, true, { value: parseEther("4.1").toString() }); // 4.1 SEI
     await prediction
       .connect(bullUser2)
-      .betBull(currentEpoch, { value: parseEther("4.2").toString() }); // 4.2 SEI
+      .bet(currentEpoch, true, { value: parseEther("4.2").toString() }); // 4.2 SEI
     await prediction
       .connect(bearUser1)
-      .betBear(currentEpoch, { value: parseEther("4.4").toString() }); // 4.4 SEI
+      .bet(currentEpoch, false, { value: parseEther("4.4").toString() }); // 4.4 SEI
 
     assert.equal(
       (await prediction.rounds(1)).rewardBaseCalAmount,
@@ -916,7 +915,7 @@ describe("PredictionsV2", () => {
 
     await updateOraclePrice(INITIAL_PRICE); // To update Oracle roundId
     await expect(prediction.executeRound()).to.be.revertedWith(
-      "Can only lock round after lockTimestamp",
+      "CannotLockYet()",
     );
     await nextEpoch();
     await prediction.executeRound(); // Success
@@ -931,34 +930,34 @@ describe("PredictionsV2", () => {
 
     await prediction
       .connect(bullUser1)
-      .betBull(currentEpoch, { value: parseEther("1").toString() }); // 1 SEI
+      .bet(currentEpoch, true, { value: parseEther("1").toString() }); // 1 SEI
     await prediction
       .connect(bullUser2)
-      .betBull(currentEpoch, { value: parseEther("2").toString() }); // 2 SEI
+      .bet(currentEpoch, true, { value: parseEther("2").toString() }); // 2 SEI
     await prediction
       .connect(bearUser1)
-      .betBear(currentEpoch, { value: parseEther("4").toString() }); // 4 SEI
+      .bet(currentEpoch, false, { value: parseEther("4").toString() }); // 4 SEI
 
     assert.equal(await prediction.claimable(1, bullUser1.address), false);
     assert.equal(await prediction.claimable(1, bullUser2.address), false);
     assert.equal(await prediction.claimable(1, bearUser1.address), false);
     await expect(prediction.connect(bullUser1).claim([1])).to.be.revertedWith(
-      "Round has not ended",
+      "RoundNotOverYet()",
     );
     await expect(prediction.connect(bullUser2).claim([1])).to.be.revertedWith(
-      "Round has not ended",
+      "RoundNotOverYet()",
     );
     await expect(prediction.connect(bearUser1).claim([1])).to.be.revertedWith(
-      "Round has not ended",
+      "RoundNotOverYet()",
     );
     await expect(prediction.connect(bullUser1).claim([2])).to.be.revertedWith(
-      "Round has not started",
+      "RoundNotOverYet()",
     );
     await expect(prediction.connect(bullUser2).claim([2])).to.be.revertedWith(
-      "Round has not started",
+      "RoundNotOverYet()",
     );
     await expect(prediction.connect(bearUser1).claim([2])).to.be.revertedWith(
-      "Round has not started",
+      "RoundNotOverYet()",
     );
 
     // Epoch 2
@@ -970,13 +969,13 @@ describe("PredictionsV2", () => {
 
     await prediction
       .connect(bullUser1)
-      .betBull(currentEpoch, { value: parseEther("21").toString() }); // 21 SEI
+      .bet(currentEpoch, true, { value: parseEther("21").toString() }); // 21 SEI
     await prediction
       .connect(bullUser2)
-      .betBull(currentEpoch, { value: parseEther("22").toString() }); // 22 SEI
+      .bet(currentEpoch, true, { value: parseEther("22").toString() }); // 22 SEI
     await prediction
       .connect(bearUser1)
-      .betBear(currentEpoch, { value: parseEther("24").toString() }); // 24 SEI
+      .bet(currentEpoch, false, { value: parseEther("24").toString() }); // 24 SEI
 
     assert.equal(await prediction.claimable(1, bullUser1.address), false);
     assert.equal(await prediction.claimable(1, bullUser2.address), false);
@@ -985,22 +984,22 @@ describe("PredictionsV2", () => {
     assert.equal(await prediction.claimable(2, bullUser2.address), false);
     assert.equal(await prediction.claimable(2, bearUser1.address), false);
     await expect(prediction.connect(bullUser1).claim([1])).to.be.revertedWith(
-      "Round has not ended",
+      "RoundNotOverYet()",
     );
     await expect(prediction.connect(bullUser2).claim([1])).to.be.revertedWith(
-      "Round has not ended",
+      "RoundNotOverYet()",
     );
     await expect(prediction.connect(bearUser1).claim([1])).to.be.revertedWith(
-      "Round has not ended",
+      "RoundNotOverYet()",
     );
     await expect(prediction.connect(bullUser1).claim([2])).to.be.revertedWith(
-      "Round has not ended",
+      "RoundNotOverYet()",
     );
     await expect(prediction.connect(bullUser2).claim([2])).to.be.revertedWith(
-      "Round has not ended",
+      "RoundNotOverYet()",
     );
     await expect(prediction.connect(bearUser1).claim([2])).to.be.revertedWith(
-      "Round has not ended",
+      "RoundNotOverYet()",
     );
 
     // Epoch 3, Round 1 is Bull (130 > 120)
@@ -1026,16 +1025,16 @@ describe("PredictionsV2", () => {
       .withArgs(bullUser2.address, 1, parseEther("4.2").toString()); // Success
 
     await expect(prediction.connect(bearUser1).claim([1])).to.be.revertedWith(
-      "Not eligible for claim",
+      "NotClaimable()",
     );
     await expect(prediction.connect(bullUser1).claim([2])).to.be.revertedWith(
-      "Round has not ended",
+      "RoundNotOverYet()",
     );
     await expect(prediction.connect(bullUser2).claim([2])).to.be.revertedWith(
-      "Round has not ended",
+      "RoundNotOverYet()",
     );
     await expect(prediction.connect(bearUser1).claim([2])).to.be.revertedWith(
-      "Round has not ended",
+      "RoundNotOverYet()",
     );
 
     // Epoch 4, Round 2 is Bear (100 < 130)
@@ -1057,22 +1056,22 @@ describe("PredictionsV2", () => {
       .withArgs(bearUser1.address, 2, parseEther("60.3").toString()); // Success
 
     await expect(prediction.connect(bullUser1).claim([1])).to.be.revertedWith(
-      "Not eligible for claim",
+      "NotClaimable()",
     );
     await expect(prediction.connect(bullUser2).claim([1])).to.be.revertedWith(
-      "Not eligible for claim",
+      "NotClaimable()",
     );
     await expect(prediction.connect(bearUser1).claim([1])).to.be.revertedWith(
-      "Not eligible for claim",
+      "NotClaimable()",
     );
     await expect(prediction.connect(bullUser1).claim([2])).to.be.revertedWith(
-      "Not eligible for claim",
+      "NotClaimable()",
     );
     await expect(prediction.connect(bullUser2).claim([2])).to.be.revertedWith(
-      "Not eligible for claim",
+      "NotClaimable()",
     );
     await expect(prediction.connect(bearUser1).claim([2])).to.be.revertedWith(
-      "Not eligible for claim",
+      "NotClaimable()",
     );
   });
 
@@ -1085,13 +1084,13 @@ describe("PredictionsV2", () => {
 
     await prediction
       .connect(bullUser1)
-      .betBull(currentEpoch, { value: parseEther("1").toString() }); // 1 SEI
+      .bet(currentEpoch, true, { value: parseEther("1").toString() }); // 1 SEI
     await prediction
       .connect(bullUser2)
-      .betBull(currentEpoch, { value: parseEther("2").toString() }); // 2 SEI
+      .bet(currentEpoch, true, { value: parseEther("2").toString() }); // 2 SEI
     await prediction
       .connect(bearUser1)
-      .betBear(currentEpoch, { value: parseEther("4").toString() }); // 4 SEI
+      .bet(currentEpoch, false, { value: parseEther("4").toString() }); // 4 SEI
 
     assert.equal(await prediction.claimable(1, bullUser1.address), false);
     assert.equal(await prediction.claimable(1, bullUser2.address), false);
@@ -1106,13 +1105,13 @@ describe("PredictionsV2", () => {
 
     await prediction
       .connect(bullUser1)
-      .betBull(currentEpoch, { value: parseEther("21").toString() }); // 21 SEI
+      .bet(currentEpoch, true, { value: parseEther("21").toString() }); // 21 SEI
     await prediction
       .connect(bullUser2)
-      .betBull(currentEpoch, { value: parseEther("22").toString() }); // 22 SEI
+      .bet(currentEpoch, true, { value: parseEther("22").toString() }); // 22 SEI
     await prediction
       .connect(bearUser1)
-      .betBear(currentEpoch, { value: parseEther("24").toString() }); // 24 SEI
+      .bet(currentEpoch, false, { value: parseEther("24").toString() }); // 24 SEI
 
     // Epoch 3, Round 1 is Bull (130 > 120)
     await nextEpoch();
@@ -1142,10 +1141,10 @@ describe("PredictionsV2", () => {
 
     await expect(
       prediction.connect(bullUser1).claim([2, 2]),
-    ).to.be.revertedWith("Not eligible for claim");
+    ).to.be.revertedWith("NotClaimable()");
     await expect(
       prediction.connect(bullUser1).claim([1, 1]),
-    ).to.be.revertedWith("Not eligible for claim");
+    ).to.be.revertedWith("NotClaimable()");
 
     await expect(await prediction.connect(bullUser1).claim([1, 2]))
       .to.emit(prediction, "Claim")
@@ -1157,21 +1156,21 @@ describe("PredictionsV2", () => {
 
     await expect(
       prediction.connect(bullUser1).claim([1, 2]),
-    ).to.be.revertedWith("Not eligible for claim");
+    ).to.be.revertedWith("NotClaimable()");
     await expect(
       prediction.connect(bullUser1).claim([2, 1]),
-    ).to.be.revertedWith("Not eligible for claim");
+    ).to.be.revertedWith("NotClaimable()");
     await expect(
       prediction.connect(bullUser2).claim([1, 2]),
-    ).to.be.revertedWith("Not eligible for claim");
+    ).to.be.revertedWith("NotClaimable()");
     await expect(
       prediction.connect(bullUser2).claim([2, 1]),
-    ).to.be.revertedWith("Not eligible for claim");
+    ).to.be.revertedWith("NotClaimable()");
     await expect(prediction.connect(bearUser1).claim([1])).to.be.revertedWith(
-      "Not eligible for claim",
+      "NotClaimable()",
     );
     await expect(prediction.connect(bearUser1).claim([2])).to.be.revertedWith(
-      "Not eligible for claim",
+      "NotClaimable()",
     );
   });
 
@@ -1184,13 +1183,13 @@ describe("PredictionsV2", () => {
 
     await prediction
       .connect(bullUser1)
-      .betBull(currentEpoch, { value: parseEther("1").toString() }); // 1 SEI
+      .bet(currentEpoch, true, { value: parseEther("1").toString() }); // 1 SEI
     await prediction
       .connect(bullUser2)
-      .betBull(currentEpoch, { value: parseEther("2").toString() }); // 2 SEI
+      .bet(currentEpoch, true, { value: parseEther("2").toString() }); // 2 SEI
     await prediction
       .connect(bearUser1)
-      .betBear(currentEpoch, { value: parseEther("4").toString() }); // 4 SEI
+      .bet(currentEpoch, false, { value: parseEther("4").toString() }); // 4 SEI
 
     // Epoch 2
     await nextEpoch();
@@ -1203,13 +1202,13 @@ describe("PredictionsV2", () => {
     await prediction.executeRound();
 
     await expect(prediction.connect(bullUser1).claim([1])).to.be.revertedWith(
-      "Not eligible for claim",
+      "NotClaimable()",
     );
     await expect(prediction.connect(bullUser2).claim([1])).to.be.revertedWith(
-      "Not eligible for claim",
+      "NotClaimable()",
     );
     await expect(prediction.connect(bearUser1).claim([1])).to.be.revertedWith(
-      "Not eligible for claim",
+      "NotClaimable()",
     );
     assert.equal(
       (await prediction.treasuryAmount()).toString(),
@@ -1230,13 +1229,13 @@ describe("PredictionsV2", () => {
 
     await prediction
       .connect(bullUser1)
-      .betBull(currentEpoch, { value: parseEther("1").toString() }); // 1 SEI
+      .bet(currentEpoch, true, { value: parseEther("1").toString() }); // 1 SEI
     await prediction
       .connect(bullUser2)
-      .betBull(currentEpoch, { value: parseEther("2").toString() }); // 2 SEI
+      .bet(currentEpoch, true, { value: parseEther("2").toString() }); // 2 SEI
     await prediction
       .connect(bearUser1)
-      .betBear(currentEpoch, { value: parseEther("4").toString() }); // 4 SEI
+      .bet(currentEpoch, false, { value: parseEther("4").toString() }); // 4 SEI
     predictionCurrentSEI = predictionCurrentSEI.add(parseEther("7"));
 
     assert.equal(await prediction.treasuryAmount(), 0);
@@ -1252,13 +1251,13 @@ describe("PredictionsV2", () => {
 
     await prediction
       .connect(bullUser1)
-      .betBull(currentEpoch, { value: parseEther("21").toString() }); // 21 SEI
+      .bet(currentEpoch, true, { value: parseEther("21").toString() }); // 21 SEI
     await prediction
       .connect(bullUser2)
-      .betBull(currentEpoch, { value: parseEther("22").toString() }); // 22 SEI
+      .bet(currentEpoch, true, { value: parseEther("22").toString() }); // 22 SEI
     await prediction
       .connect(bearUser1)
-      .betBear(currentEpoch, { value: parseEther("24").toString() }); // 24 SEI
+      .bet(currentEpoch, false, { value: parseEther("24").toString() }); // 24 SEI
     predictionCurrentSEI = predictionCurrentSEI.add(parseEther("67"));
 
     assert.equal(await prediction.treasuryAmount(), 0);
@@ -1274,13 +1273,13 @@ describe("PredictionsV2", () => {
 
     await prediction
       .connect(bullUser1)
-      .betBull(currentEpoch, { value: parseEther("31").toString() }); // 31 SEI
+      .bet(currentEpoch, true, { value: parseEther("31").toString() }); // 31 SEI
     await prediction
       .connect(bullUser2)
-      .betBull(currentEpoch, { value: parseEther("32").toString() }); // 32 SEI
+      .bet(currentEpoch, true, { value: parseEther("32").toString() }); // 32 SEI
     await prediction
       .connect(bearUser1)
-      .betBear(currentEpoch, { value: parseEther("34").toString() }); // 34 SEI
+      .bet(currentEpoch, false, { value: parseEther("34").toString() }); // 34 SEI
     predictionCurrentSEI = predictionCurrentSEI.add(parseEther("97"));
 
     // Admin claim for Round 1
@@ -1334,23 +1333,23 @@ describe("PredictionsV2", () => {
 
     await expect(
       prediction.connect(admin).setBufferAndIntervalSeconds("100", "99"),
-    ).to.be.revertedWith("bufferSeconds must be inferior to intervalSeconds");
+    ).to.be.revertedWith("InvalidTimespanRelation()");
 
     await expect(
       prediction.connect(admin).setBufferAndIntervalSeconds("100", "100"),
-    ).to.be.revertedWith("bufferSeconds must be inferior to intervalSeconds");
+    ).to.be.revertedWith("InvalidTimespanRelation()");
 
     await prediction.connect(admin).setMinBetAmount("50");
 
     await expect(
       prediction.connect(admin).setMinBetAmount("0"),
-    ).to.be.revertedWith("Must be superior to 0");
+    ).to.be.revertedWith("InvalidMinBetAmount()");
 
     await prediction.connect(admin).setOperator(admin.address);
 
     await expect(
       prediction.connect(admin).setOperator(ZERO_ADDRESS),
-    ).to.be.revertedWith("Cannot be zero address");
+    ).to.be.revertedWith("InvalidAddress()");
 
     await prediction
       .connect(admin)
@@ -1360,7 +1359,7 @@ describe("PredictionsV2", () => {
       prediction
         .connect(admin)
         .setOracleAndPriceFeedId(ZERO_ADDRESS, SEI_PRICE_FEED_ID),
-    ).to.be.revertedWith("Cannot be zero address");
+    ).to.be.revertedWith("InvalidAddress()");
 
     await prediction.connect(admin).setOracleUpdateAllowance("30");
 
@@ -1368,60 +1367,60 @@ describe("PredictionsV2", () => {
 
     await expect(
       prediction.connect(admin).setTreasuryFee("3000"),
-    ).to.be.revertedWith("Treasury fee too high");
+    ).to.be.revertedWith("TreasuryFeeTooHigh()");
 
     await prediction.connect(owner).setAdmin(owner.address);
 
     await expect(
       prediction.connect(owner).setAdmin(ZERO_ADDRESS),
-    ).to.be.revertedWith("Cannot be zero address");
+    ).to.be.revertedWith("InvalidAddress()");
   });
 
   it("Should reject operator functions when not operator", async () => {
     await expect(
       prediction.connect(admin).genesisLockRound(),
-    ).to.be.revertedWith("Not operator");
+    ).to.be.revertedWith("OnlyOperator()");
     await expect(
       prediction.connect(admin).genesisStartRound(),
-    ).to.be.revertedWith("Not operator");
+    ).to.be.revertedWith("OnlyOperator()");
     await expect(prediction.connect(admin).executeRound()).to.be.revertedWith(
-      "Not operator",
+      "OnlyOperator()",
     );
   });
 
   it("Should reject admin/owner functions when not admin/owner", async () => {
     await expect(
       prediction.connect(bullUser1).claimTreasury(),
-    ).to.be.revertedWith("Not admin");
+    ).to.be.revertedWith("OnlyAdmin()");
     await expect(prediction.connect(bullUser1).pause()).to.be.revertedWith(
-      "Not operator/admin",
+      "OnlyAdminOrOperator()",
     );
     await prediction.connect(admin).pause();
     await expect(prediction.connect(bullUser1).unpause()).to.be.revertedWith(
-      "Not operator/admin",
+      "OnlyAdminOrOperator()",
     );
     await expect(
       prediction.connect(bullUser1).setBufferAndIntervalSeconds("50", "100"),
-    ).to.be.revertedWith("Not admin");
+    ).to.be.revertedWith("OnlyAdmin()");
     await expect(
       prediction.connect(bullUser1).setMinBetAmount("0"),
-    ).to.be.revertedWith("Not admin");
+    ).to.be.revertedWith("OnlyAdmin()");
     await expect(
       prediction.connect(bullUser1).setOperator(bearUser1.address),
-    ).to.be.revertedWith("Not admin");
+    ).to.be.revertedWith("OnlyAdmin()");
     await expect(
       prediction
         .connect(bullUser1)
         .setOracleAndPriceFeedId(bearUser1.address, SEI_PRICE_FEED_ID),
-    ).to.be.revertedWith("Not admin");
+    ).to.be.revertedWith("OnlyAdmin()");
     await expect(
       prediction.connect(bullUser1).setOracleUpdateAllowance("0"),
-    ).to.be.revertedWith("Not admin");
+    ).to.be.revertedWith("OnlyAdmin()");
     await expect(
       prediction.connect(bullUser1).setTreasuryFee("100"),
-    ).to.be.revertedWith("Not admin");
+    ).to.be.revertedWith("OnlyAdmin()");
     await expect(prediction.connect(bullUser1).unpause()).to.be.revertedWith(
-      "Not operator/admin",
+      "OnlyAdminOrOperator()",
     );
     await prediction.connect(admin).unpause();
   });
@@ -1452,13 +1451,13 @@ describe("PredictionsV2", () => {
 
     await prediction
       .connect(bullUser1)
-      .betBull(currentEpoch, { value: parseEther("1").toString() }); // 1 SEI
+      .bet(currentEpoch, true, { value: parseEther("1").toString() }); // 1 SEI
     await prediction
       .connect(bullUser2)
-      .betBull(currentEpoch, { value: parseEther("2").toString() }); // 2 SEI
+      .bet(currentEpoch, true, { value: parseEther("2").toString() }); // 2 SEI
     await prediction
       .connect(bearUser1)
-      .betBear(currentEpoch, { value: parseEther("4").toString() }); // 4 SEI
+      .bet(currentEpoch, false, { value: parseEther("4").toString() }); // 4 SEI
 
     assert.equal(await prediction.refundable(1, bullUser1.address), false);
     assert.equal(await prediction.refundable(1, bullUser2.address), false);
@@ -1483,7 +1482,7 @@ describe("PredictionsV2", () => {
     await nextEpoch();
     await updateOraclePrice(INITIAL_PRICE); // To update Oracle roundId
     await expect(prediction.executeRound()).to.be.revertedWith(
-      "Can only lock round within bufferSeconds",
+      "ClosingPeriodEnded()",
     );
 
     // Refund for Round 1
@@ -1499,13 +1498,13 @@ describe("PredictionsV2", () => {
     await prediction.connect(bearUser1).claim([1]); // Success
 
     await expect(prediction.connect(bullUser1).claim([1])).to.be.revertedWith(
-      "Not eligible for refund",
+      "NotRefundable()",
     );
     await expect(prediction.connect(bullUser2).claim([1])).to.be.revertedWith(
-      "Not eligible for refund",
+      "NotRefundable()",
     );
     await expect(prediction.connect(bearUser1).claim([1])).to.be.revertedWith(
-      "Not eligible for refund",
+      "NotRefundable()",
     );
 
     // Treasury amount should be empty
@@ -1519,23 +1518,23 @@ describe("PredictionsV2", () => {
     await expect(
       prediction
         .connect(bullUser1)
-        .betBull("0", { value: parseEther("1").toString() }),
-    ).to.be.revertedWith("Round not bettable");
+        .bet("0", true, { value: parseEther("1").toString() }),
+    ).to.be.revertedWith("NotBettable()");
     await expect(
       prediction
         .connect(bullUser1)
-        .betBear("0", { value: parseEther("1").toString() }),
-    ).to.be.revertedWith("Round not bettable");
+        .bet("0", true, { value: parseEther("1").toString() }),
+    ).to.be.revertedWith("NotBettable()");
     await expect(
       prediction
         .connect(bullUser1)
-        .betBull("1", { value: parseEther("1").toString() }),
-    ).to.be.revertedWith("Bet is too early/late");
+        .bet("1", true, { value: parseEther("1").toString() }),
+    ).to.be.revertedWith("BetUnavailable()");
     await expect(
       prediction
         .connect(bullUser1)
-        .betBear("1", { value: parseEther("1").toString() }),
-    ).to.be.revertedWith("Bet is too early/late");
+        .bet("1", false, { value: parseEther("1").toString() }),
+    ).to.be.revertedWith("BetUnavailable()");
 
     // Epoch 1
     const price110 = 11000000000; // $110
@@ -1545,39 +1544,39 @@ describe("PredictionsV2", () => {
     await expect(
       prediction
         .connect(bullUser1)
-        .betBull("2", { value: parseEther("1").toString() }),
-    ).to.be.revertedWith("Bet is too early/late");
+        .bet("2", true, { value: parseEther("1").toString() }),
+    ).to.be.revertedWith("BetUnavailable()");
     await expect(
       prediction
         .connect(bullUser1)
-        .betBear("2", { value: parseEther("1").toString() }),
-    ).to.be.revertedWith("Bet is too early/late");
+        .bet("2", false, { value: parseEther("1").toString() }),
+    ).to.be.revertedWith("BetUnavailable()");
 
     // Bets must be higher (or equal) than minBetAmount
     await expect(
       prediction
         .connect(bullUser1)
-        .betBear("1", { value: parseEther("0.999999").toString() }),
-    ).to.be.revertedWith("Bet amount must be greater than minBetAmount");
+        .bet("1", false, { value: parseEther("0.999999").toString() }),
+    ).to.be.revertedWith("BetAmountTooLow()");
     await expect(
       prediction
         .connect(bullUser1)
-        .betBull("1", { value: parseEther("0.999999").toString() }),
-    ).to.be.revertedWith("Bet amount must be greater than minBetAmount");
+        .bet("1", true, { value: parseEther("0.999999").toString() }),
+    ).to.be.revertedWith("BetAmountTooLow()");
   });
 
   it("Rejections for genesis start and lock rounds work as expected", async () => {
     await expect(prediction.executeRound()).to.be.revertedWith(
-      "Can only run after genesisStartRound and genesisLockRound is triggered",
+      "GenesisNotManaged()",
     );
 
     // Epoch 1
     await prediction.genesisStartRound();
     await expect(prediction.genesisStartRound()).to.be.revertedWith(
-      "Can only run genesisStartRound once",
+      "GenesisAlreadyStarted()",
     );
     await expect(prediction.genesisLockRound()).to.be.revertedWith(
-      "Can only lock round after lockTimestamp",
+      "CannotLockYet()",
     );
 
     // // Advance to next epoch
@@ -1586,16 +1585,16 @@ describe("PredictionsV2", () => {
     await updateOraclePrice(INITIAL_PRICE);
 
     await expect(prediction.genesisLockRound()).to.be.revertedWith(
-      "Can only lock round within bufferSeconds",
+      "ClosingPeriodEnded()",
     );
 
     await expect(prediction.executeRound()).to.be.revertedWith(
-      "Can only run after genesisStartRound and genesisLockRound is triggered",
+      "GenesisNotManaged()",
     );
 
     // Cannot restart genesis round
     await expect(prediction.genesisStartRound()).to.be.revertedWith(
-      "Can only run genesisStartRound once",
+      "GenesisAlreadyStarted()",
     );
 
     // Admin needs to pause, then unpause
@@ -1611,13 +1610,13 @@ describe("PredictionsV2", () => {
     await prediction.genesisLockRound();
     await nextEpoch();
     await expect(prediction.genesisLockRound()).to.be.revertedWith(
-      "Can only run genesisLockRound once",
+      "GenesisAlreadyLocked()",
     );
 
     await nextEpoch();
     await updateOraclePrice(INITIAL_PRICE); // To update Oracle roundId
     await expect(prediction.executeRound()).to.be.revertedWith(
-      "Can only lock round within bufferSeconds",
+      "ClosingPeriodEnded()",
     );
   });
 
@@ -1634,15 +1633,15 @@ describe("PredictionsV2", () => {
     await expect(
       prediction
         .connect(bullUser1)
-        .betBull(currentEpoch, { value: parseEther("1").toString() }),
+        .bet(currentEpoch, true, { value: parseEther("1").toString() }),
     ).to.be.reverted;
     await expect(
       prediction
         .connect(bearUser1)
-        .betBear(currentEpoch, { value: parseEther("1").toString() }),
+        .bet(currentEpoch, false, { value: parseEther("1").toString() }),
     ).to.be.reverted;
     await expect(prediction.connect(bullUser1).claim([1])).to.be.revertedWith(
-      "Not eligible for claim",
+      "NotClaimable()",
     ); // Success
   });
 
@@ -1680,13 +1679,13 @@ describe("PredictionsV2", () => {
 
     await prediction
       .connect(bullUser1)
-      .betBull(currentEpoch, { value: parseEther("1").toString() });
+      .bet(currentEpoch, true, { value: parseEther("1").toString() });
     await prediction
       .connect(bullUser2)
-      .betBull(currentEpoch, { value: parseEther("1").toString() });
+      .bet(currentEpoch, true, { value: parseEther("1").toString() });
     await prediction
       .connect(bearUser1)
-      .betBear(currentEpoch, { value: parseEther("1").toString() });
+      .bet(currentEpoch, false, { value: parseEther("1").toString() });
 
     await nextEpoch();
     await updateOraclePrice(INITIAL_PRICE);
@@ -1695,13 +1694,13 @@ describe("PredictionsV2", () => {
 
     await prediction
       .connect(bullUser1)
-      .betBull(currentEpoch, { value: parseEther("1").toString() });
+      .bet(currentEpoch, true, { value: parseEther("1").toString() });
     await prediction
       .connect(bullUser2)
-      .betBull(currentEpoch, { value: parseEther("1").toString() });
+      .bet(currentEpoch, true, { value: parseEther("1").toString() });
     await prediction
       .connect(bearUser1)
-      .betBear(currentEpoch, { value: parseEther("1").toString() });
+      .bet(currentEpoch, false, { value: parseEther("1").toString() });
 
     await nextEpoch();
     await updateOraclePrice(INITIAL_PRICE);
@@ -1710,13 +1709,13 @@ describe("PredictionsV2", () => {
 
     await prediction
       .connect(bullUser1)
-      .betBull(currentEpoch, { value: parseEther("1").toString() });
+      .bet(currentEpoch, true, { value: parseEther("1").toString() });
     await prediction
       .connect(bullUser2)
-      .betBull(currentEpoch, { value: parseEther("1").toString() });
+      .bet(currentEpoch, true, { value: parseEther("1").toString() });
     await prediction
       .connect(bearUser1)
-      .betBear(currentEpoch, { value: parseEther("1").toString() });
+      .bet(currentEpoch, false, { value: parseEther("1").toString() });
 
     await nextEpoch();
     await updateOraclePrice(INITIAL_PRICE);
@@ -1725,10 +1724,10 @@ describe("PredictionsV2", () => {
 
     await prediction
       .connect(bullUser1)
-      .betBull(currentEpoch, { value: parseEther("1").toString() });
+      .bet(currentEpoch, true, { value: parseEther("1").toString() });
     await prediction
       .connect(bullUser2)
-      .betBull(currentEpoch, { value: parseEther("1").toString() });
+      .bet(currentEpoch, true, { value: parseEther("1").toString() });
 
     await nextEpoch();
     await updateOraclePrice(INITIAL_PRICE);
@@ -1737,7 +1736,7 @@ describe("PredictionsV2", () => {
 
     await prediction
       .connect(bullUser1)
-      .betBull(currentEpoch, { value: parseEther("1").toString() });
+      .bet(currentEpoch, true, { value: parseEther("1").toString() });
 
     // Get by page size of 2
     const pageSize = 2;
