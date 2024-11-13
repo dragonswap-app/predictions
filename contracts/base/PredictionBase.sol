@@ -90,7 +90,7 @@ abstract contract PredictionBase is IPrediction, OwnableUpgradeable, PausableUpg
         treasuryFee = _treasuryFee;
     }
 
-    function setBettingToken(address _token) internal initializer {
+    function setBettingToken(address _token) internal onlyInitializing {
         if (_token == address(0)) revert InvalidAddress();
         token = IERC20(_token);
     }
