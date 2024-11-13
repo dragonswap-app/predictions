@@ -6,7 +6,7 @@ import {PredictionBaseERC20} from "./base/PredictionBaseERC20.sol";
 import {IPyth} from "@pythnetwork/pyth-sdk-solidity/IPyth.sol";
 import {PythStructs} from "@pythnetwork/pyth-sdk-solidity/PythStructs.sol";
 
-contract PredictionV3PythBased is PredictionBaseERC20 {
+contract PredictionV3Pyth is PredictionBaseERC20 {
     using SafeERC20 for IERC20;
 
     IPyth public pythOracle;
