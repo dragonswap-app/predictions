@@ -45,10 +45,35 @@ contract PredictionV3PythBased is PredictionBaseERC20 {
         pythOracle = IPyth(_oracleAddress);
 
         oracleUpdateAllowance = _oracleUpdateAllowance;
+        if(_priceFeedId == bytes32(0)) revert InvalidBytes32Value();
         priceFeedId = _priceFeedId;
     }
 
     function _getPrice() internal view override returns (uint256) {
         return uint256(int256(pythOracle.getPriceNoOlderThan(priceFeedId, oracleUpdateAllowance).price));
+    }
+
+    /**
+     * @notice Set Oracle address and Pyth price feed id
+     * @dev Callable by admin
+     */
+    function setOracleAndPriceFeedId(address _oracle, bytes32 _priceFeedId) external whenPaused onlyAdmin {
+        if (_oracle == address(0)) revert InvalidAddress();
+        if(_priceFeedId == bytes32(0)) revert InvalidBytes32Value();
+
+        pythOracle = IPyth(_oracle);
+        priceFeedId = _priceFeedId;
+
+        emit NewOracleAndPriceFeedId(_oracle, priceFeedId);
+    }
+
+    /**
+     * @notice Set oracle update allowance
+     * @dev Callable by admin
+     */
+    function setOracleUpdateAllowance(uint256 _oracleUpdateAllowance) external whenPaused onlyAdmin {
+        oracleUpdateAllowance = _oracleUpdateAllowance;
+
+        emit NewOracleUpdateAllowance(_oracleUpdateAllowance);
     }
 }
