@@ -55,7 +55,7 @@ describe("PredictionV4", () => {
 
   beforeEach(async () => {
     const predictionsContractFactory =
-      await ethers.getContractFactory("PredictionsFactory");
+      await ethers.getContractFactory("SyntheticPredictionsFactory");
     const predictionsFactory = await predictionsContractFactory.deploy(
       owner.address,
     );
