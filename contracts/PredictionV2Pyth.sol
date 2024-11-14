@@ -3,16 +3,12 @@ pragma solidity ^0.8.20;
 
 import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {PredictionBaseNative} from "./base/PredictionBaseNative.sol";
+import {PredictionBasePyth} from "./base/PredictionBasePyth.sol";
 import {IPyth} from "@pythnetwork/pyth-sdk-solidity/IPyth.sol";
 import {PythStructs} from "@pythnetwork/pyth-sdk-solidity/PythStructs.sol";
 
-contract PredictionV2Pyth is PredictionBaseNative {
+contract PredictionV2Pyth is PredictionBaseNative, PredictionBasePyth {
     using SafeERC20 for IERC20;
-
-    IPyth public pythOracle;
-    bytes32 public priceFeedId;
-
-    uint256 public oracleUpdateAllowance; // seconds
 
     /**
      * @notice Initialize the contract
@@ -38,40 +34,10 @@ contract PredictionV2Pyth is PredictionBaseNative {
         initializeBase(
             _owner, _adminAddress, _operatorAddress, _intervalSeconds, _bufferSeconds, _minBetAmount, _treasuryFee
         );
-
-        if (_oracleAddress == address(0)) revert InvalidAddress();
-        pythOracle = IPyth(_oracleAddress);
-
-        oracleUpdateAllowance = _oracleUpdateAllowance;
-        if (_priceFeedId == bytes32(0)) revert InvalidBytes32Value();
-        priceFeedId = _priceFeedId;
+        initializePyth(_oracleAddress, _oracleUpdateAllowance, _priceFeedId);
     }
 
     function _getPrice() internal view override returns (uint256) {
         return uint256(int256(pythOracle.getPriceNoOlderThan(priceFeedId, oracleUpdateAllowance).price));
-    }
-
-    /**
-     * @notice Set Oracle address and Pyth price feed id
-     * @dev Callable by admin
-     */
-    function setOracleAndPriceFeedId(address _oracle, bytes32 _priceFeedId) external whenPaused onlyAdmin {
-        if (_oracle == address(0)) revert InvalidAddress();
-        if (_priceFeedId == bytes32(0)) revert InvalidBytes32Value();
-
-        pythOracle = IPyth(_oracle);
-        priceFeedId = _priceFeedId;
-
-        emit NewOracleAndPriceFeedId(_oracle, priceFeedId);
-    }
-
-    /**
-     * @notice Set oracle update allowance
-     * @dev Callable by admin
-     */
-    function setOracleUpdateAllowance(uint256 _oracleUpdateAllowance) external whenPaused onlyAdmin {
-        oracleUpdateAllowance = _oracleUpdateAllowance;
-
-        emit NewOracleUpdateAllowance(_oracleUpdateAllowance);
     }
 }

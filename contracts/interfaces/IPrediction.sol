@@ -33,11 +33,9 @@ interface IPrediction {
     event EndRound(uint256 indexed epoch, uint256 price);
     event LockRound(uint256 indexed epoch, uint256 price);
 
-    event NewAdminAddress(address admin);
     event NewBufferAndIntervalSeconds(uint256 bufferSeconds, uint256 intervalSeconds);
     event NewMinBetAmount(uint256 indexed epoch, uint256 minBetAmount);
     event NewTreasuryFee(uint256 indexed epoch, uint256 treasuryFee);
-    event NewOperatorAddress(address operator);
 
     event Pause(uint256 indexed epoch);
     event RewardsCalculated(
@@ -49,13 +47,6 @@ interface IPrediction {
     event TreasuryClaim(uint256 amount);
     event Unpause(uint256 indexed epoch);
 
-    event NewOracleAndPriceFeedId(address oracle, bytes32 priceFeedId);
-    event NewOracleUpdateAllowance(uint256 oracleUpdateAllowance);
-
-    error OnlyAdmin();
-    error OnlyAdminOrOperator();
-    error OnlyOperator();
-    error OnlyEOA();
     error UnsupportedToken();
     error TreasuryFeeTooHigh();
     error NotClaimable();
@@ -70,7 +61,6 @@ interface IPrediction {
     error SeiTransferFailed();
     error CannotLockYet();
     error CannotCloseYet();
-    error InvalidAddress();
     error InvalidMinBetAmount();
     error GenesisAlreadyLocked();
     error GenesisAlreadyStarted();
@@ -81,5 +71,5 @@ interface IPrediction {
     error AlreadyMadeABet();
     error BetAmountTooLow();
     error BetUnavailable();
-    error InvalidBytes32Value();
+    error OnlyEOA();
 }

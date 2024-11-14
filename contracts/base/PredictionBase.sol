@@ -1,22 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {AdministrativeBase} from "./AdministrativeBase.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IPrediction} from "../interfaces/IPrediction.sol";
 
-abstract contract PredictionBase is IPrediction, OwnableUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
+abstract contract PredictionBase is IPrediction, AdministrativeBase, PausableUpgradeable, ReentrancyGuardUpgradeable {
     using SafeERC20 for IERC20;
 
     IERC20 public token; // Token being address(0) implies that bets are paid in native.
 
     bool public genesisLockOnce;
     bool public genesisStartOnce;
-
-    address public adminAddress; // address of the admin
-    address public operatorAddress; // address of the operator
 
     uint256 public bufferSeconds; // number of seconds for valid execution of a prediction round
     uint256 public intervalSeconds; // interval in seconds between two prediction rounds
@@ -32,21 +29,6 @@ abstract contract PredictionBase is IPrediction, OwnableUpgradeable, PausableUpg
     mapping(uint256 => mapping(address => BetInfo)) public ledger;
 
     uint256 public constant MAX_TREASURY_FEE = 1_000; // 10%
-
-    modifier onlyAdmin() {
-        _onlyAdmin();
-        _;
-    }
-
-    modifier onlyAdminOrOperator() {
-        _onlyAdminOrOperator();
-        _;
-    }
-
-    modifier onlyOperator() {
-        _onlyOperator();
-        _;
-    }
 
     modifier onlyEOA() {
         _onlyEOA();
@@ -76,14 +58,10 @@ abstract contract PredictionBase is IPrediction, OwnableUpgradeable, PausableUpg
         uint256 _treasuryFee
     ) internal onlyInitializing {
         if (_treasuryFee > MAX_TREASURY_FEE) revert TreasuryFeeTooHigh();
-        __Ownable_init(_owner);
-        __Pausable_init();
         __ReentrancyGuard_init();
 
-        if (_adminAddress == address(0)) revert InvalidAddress();
-        adminAddress = _adminAddress;
-        if (_operatorAddress == address(0)) revert InvalidAddress();
-        operatorAddress = _operatorAddress;
+        initializeAdministration(_owner, _adminAddress, _operatorAddress);
+
         intervalSeconds = _intervalSeconds;
         bufferSeconds = _bufferSeconds;
         minBetAmount = _minBetAmount;
@@ -243,17 +221,6 @@ abstract contract PredictionBase is IPrediction, OwnableUpgradeable, PausableUpg
     }
 
     /**
-     * @notice Set operator address
-     * @dev Callable by admin
-     */
-    function setOperator(address _operatorAddress) external onlyAdmin {
-        if (_operatorAddress == address(0)) revert InvalidAddress();
-        operatorAddress = _operatorAddress;
-
-        emit NewOperatorAddress(_operatorAddress);
-    }
-
-    /**
      * @notice Set treasury fee
      * @dev Callable by admin
      */
@@ -275,17 +242,6 @@ abstract contract PredictionBase is IPrediction, OwnableUpgradeable, PausableUpg
         _token.safeTransfer(address(msg.sender), _amount);
 
         emit TokenRecovery(address(_token), _amount);
-    }
-
-    /**
-     * @notice Set admin address
-     * @dev Callable by owner
-     */
-    function setAdmin(address _adminAddress) external onlyOwner {
-        if (_adminAddress == address(0)) revert InvalidAddress();
-        adminAddress = _adminAddress;
-
-        emit NewAdminAddress(_adminAddress);
     }
 
     /**
@@ -510,18 +466,6 @@ abstract contract PredictionBase is IPrediction, OwnableUpgradeable, PausableUpg
     function _bettable(uint256 epoch) private view returns (bool) {
         return rounds[epoch].startTimestamp != 0 && rounds[epoch].lockTimestamp != 0
             && block.timestamp > rounds[epoch].startTimestamp && block.timestamp < rounds[epoch].lockTimestamp;
-    }
-
-    function _onlyAdmin() private view {
-        if (msg.sender != adminAddress) revert OnlyAdmin();
-    }
-
-    function _onlyAdminOrOperator() private view {
-        if (msg.sender != operatorAddress && msg.sender != adminAddress) revert OnlyAdminOrOperator();
-    }
-
-    function _onlyOperator() private view {
-        if (msg.sender != operatorAddress) revert OnlyOperator();
     }
 
     function _onlyEOA() private view {

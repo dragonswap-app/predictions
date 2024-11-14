@@ -20,6 +20,4 @@ abstract contract PredictionBaseERC20 is PredictionBase {
     function _pay(address to, uint256 value) internal override {
         token.safeTransfer(to, value);
     }
-
-    function _getPrice() internal virtual override returns (uint256) {}
 }
