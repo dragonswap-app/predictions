@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 import {AdministrativeBase} from "./AdministrativeBase.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
+import {SeiNativeOracleAdapter} from "@dragonswap/sei-native-oracle-adapter/src/SeiNativeOracleAdapter.sol";
 import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IPrediction} from "../interfaces/IPrediction.sol";
 
@@ -23,6 +24,8 @@ abstract contract PredictionBase is IPrediction, AdministrativeBase, PausableUpg
     uint256 public treasuryAmount; // treasury amount that was not claimed
 
     uint256 public currentEpoch; // current epoch for prediction round
+
+    string public tokenDenom;
 
     mapping(uint256 => Round) public rounds;
     mapping(address => uint256[]) public userRounds;
@@ -440,7 +443,9 @@ abstract contract PredictionBase is IPrediction, AdministrativeBase, PausableUpg
 
     function _pay(address to, uint256 value) internal virtual {}
 
-    function _getPrice() internal virtual returns (uint256) {}
+    function _getPrice() internal virtual returns (uint256) {
+        return SeiNativeOracleAdapter.getExchangeRate(tokenDenom);
+    }
 
     /**
      * @notice Start round
