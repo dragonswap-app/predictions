@@ -34,3 +34,6 @@ coverage.json
 Flatten*
 
 .idea
+
+.vscode/
+cache_hardhat/
