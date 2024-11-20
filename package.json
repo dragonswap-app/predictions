@@ -30,34 +30,36 @@
     "hook:prepare-commit-msg": "node githooks/prepare-commit-msg.ts"
   },
   "devDependencies": {
+    "@commitlint/cli": "^17.0.3",
+    "@commitlint/config-conventional": "^17.0.3",
     "@nomiclabs/hardhat-ethers": "2.2.2",
     "@nomiclabs/hardhat-web3": "2.0.0",
     "@openzeppelin/contracts": "^5.0.0",
     "@openzeppelin/contracts-upgradeable": "^5.0.0",
     "@openzeppelin/hardhat-upgrades": "1.22.1",
     "@openzeppelin/test-helpers": "^0.5.11",
-    "ethereum-waffle": "3.4.0",
     "@types/mocha": "^10.0.7",
     "@types/node": "^14.14.35",
     "chai": "4.3.7",
-    "dotenv": "^8.2.0",
-    "ethers": "^5.7.2",
-    "hardhat": "^2.22.9",
-    "pre-commit": "^1.2.2",
-    "@commitlint/cli": "^17.0.3",
-    "@commitlint/config-conventional": "^17.0.3",
     "commitlint-config-gitmoji": "^2.2.5",
     "commitlint-plugin-gitmoji": "^2.2.0",
+    "dotenv": "^8.2.0",
+    "ethereum-waffle": "3.4.0",
+    "ethers": "^5.7.2",
+    "hardhat": "^2.22.9",
+    "hardhat-contract-sizer": "2.8.0",
     "husky": "^8.0.3",
+    "pre-commit": "^1.2.2",
     "prettier": "3.2.4",
     "prettier-plugin-solidity": "1.3.1",
     "solhint": "4.1.1",
     "solidity-coverage": "^0.8.13",
-    "hardhat-contract-sizer": "2.8.0",
     "ts-node": "^9.1.1",
     "typescript": "^4.2.3"
   },
   "dependencies": {
-    "@pythnetwork/pyth-sdk-solidity": "^4.0.0"
+    "@nomicfoundation/hardhat-foundry": "^1.1.2",
+    "@pythnetwork/pyth-sdk-solidity": "^4.0.0",
+    "sei-native-oracle-adapter": "git+https://github.com/dragonswap-app/sei-native-oracle-adapter.git"
   }
 }

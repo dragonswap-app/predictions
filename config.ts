@@ -32,8 +32,8 @@ export default {
     testnet: 300, // 3%
   },
   MinBetAmount: {
-    mainnet: 15,
-    testnet: 15,
+    mainnet: 5,
+    testnet: 5,
   },
   OracleUpdateAllowance: {
     mainnet: 200,
@@ -49,4 +49,8 @@ export default {
     mainnet: 1,
     testnet: 1,
   },
+  TokenDenom: {
+    mainnet: "ueth",
+    testnet: "usei"
+  }
 };

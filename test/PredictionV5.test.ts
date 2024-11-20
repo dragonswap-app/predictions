@@ -95,7 +95,7 @@ describe("PredictionsV5", () => {
     mockERC20.connect(bearUser3).mintTokens(MintAmount);
 
     const predictionsContractFactory =
-      await ethers.getContractFactory("PredictionsFactory");
+      await ethers.getContractFactory("SyntheticPredictionsFactory");
     const predictionsFactory = await predictionsContractFactory.deploy(
       owner.address,
     );

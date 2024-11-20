@@ -1,0 +1,4 @@
+@dragonswap/sei-native-oracle-adapter/=lib/sei-native-oracle-adapter/
+@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
+@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/
+@pythnetwork/pyth-sdk-solidity/=lib/pyth-sdk-solidity
