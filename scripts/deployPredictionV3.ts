@@ -29,15 +29,13 @@ const main = async () => {
     console.log("Compiled contracts...");
 
     const token = config.Address.Token[networkName];
-    const oracleAddress = config.Address.PythOracle[networkName];
     const interval = config.Block.Interval[networkName];
     const buffer = config.Block.Buffer[networkName];
     const minBetAmount = parseEther(
       config.MinBetAmount[networkName].toString(),
     ).toString();
-    const oracleUpdateAllowance = config.OracleUpdateAllowance[networkName];
-    const priceFeedId = config.PriceFeedId[networkName];
     const treasury = config.Treasury[networkName];
+    const denom = config.TokenDenom[networkName];
 
     const predictionsFactoryAddress = getJson(jsons.addresses)[network.name][
       "PredictionsFactory"
@@ -74,15 +72,13 @@ const main = async () => {
 
     const predictionsV3Tx = await predictionsFactory.deployPredictionV3(
       token,
-      oracleAddress,
       adminAddress,
       operatorAddress,
       interval,
       buffer,
       minBetAmount,
-      oracleUpdateAllowance,
-      priceFeedId,
       treasury,
+      denom
     );
 
     const predictionsV3TxReceipt = await predictionsV3Tx.wait();
