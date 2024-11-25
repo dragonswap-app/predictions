@@ -1,8 +1,10 @@
 {
   "testnet": {},
   "mainnet": {
-    "PredictionsFactory": "0xB34B27E0FB109A7fA3fAA0596d4D115C423c785b",
-    "PredictionV2Implementation": "0xca9851E8c209906d612aa41D683A6Db7fd2d5266",
-    "PredictionsV2": "0x5B31c97EB5FD1C13BC01a0f6Fd5D0bbF0170dA9B"
+    "PredictionsFactory": "0x449F992f3C352f3dD974712a5B4D7D28f47fb3e9",
+    "PredictionV2Implementation": "0xEA528e7c7d655d2563DDeb118Abb1F142dce1765",
+    "PredictionsV2_SEI": "0x308577457b3471eb9daca52e0edccd6d031f4d58",
+    "PredictionsV2_BTC": "0x0f8550cdda73f47434412215180d85a1bc94eac8",
+    "PredictionsV2_ETH": "0x6dd0d611b5e6d80e27fe9687487fe36f12270839"
   }
 }
